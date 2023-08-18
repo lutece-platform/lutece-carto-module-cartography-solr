@@ -1,0 +1,563 @@
+<#setting url_escaping_charset="UTF-8">
+
+<#if conf_user_query??>
+<#assign conf_query = "&conf=${conf_user_query}">
+<#else>
+<#assign conf_query = "">
+</#if>
+
+<#-- Encode facet queries -->
+<#macro EncodeFQ list_fq optionalParam="" optionalParamDate=false >
+<#assign encoded_facets_queries = "">
+<#list list_fq as facet>
+        <#assign facet_url = facet?url>
+        <#if !optionalParam?has_content>
+                <#assign encoded_facets_queries = encoded_facets_queries+"&fq="+facet_url>
+        <#else>
+                <#if optionalParam != facet_url && optionalParamDate == false>
+                        <#assign encoded_facets_queries = encoded_facets_queries+"&fq="+facet_url>
+                </#if>
+                <#if optionalParam != facet_url?url && optionalParamDate== true >
+                        <#assign encoded_facets_queries = encoded_facets_queries+"&fq="+facet_url>
+                </#if>
+        </#if>
+</#list>
+${encoded_facets_queries}
+</#macro>
+<#if conf.extraMappingQuery>
+  <script type="text/javascript">
+      var loadresource = document.createElement('link');
+      loadresource.setAttribute("rel", "stylesheet");
+      loadresource.setAttribute("type", "text/css");
+      loadresource.setAttribute("href", "js/plugins/leaflet/leaflet/leaflet.css");
+      document.getElementsByTagName("head")[0].appendChild(loadresource);
+
+      loadresource = document.createElement('link');
+      loadresource.setAttribute("rel", "stylesheet");
+      loadresource.setAttribute("type", "text/css");
+      loadresource.setAttribute("href", "js/plugins/leaflet/leaflet/MarkerCluster.css");
+      document.getElementsByTagName("head")[0].appendChild(loadresource);
+
+      loadresource = document.createElement('link');
+      loadresource.setAttribute("rel", "stylesheet");
+      loadresource.setAttribute("type", "text/css");
+      loadresource.setAttribute("href", "js/plugins/leaflet/leaflet/MarkerCluster.Default.css");
+      document.getElementsByTagName("head")[0].appendChild(loadresource);
+  </script>
+
+  <script src = "js/plugins/leaflet/leaflet/leaflet.js"></script>
+  <script src="js/plugins/leaflet/leaflet/leaflet.markercluster.js"></script>
+
+  <script type="text/javascript">
+  $(window).on('load', function () {
+	  	var defaultZoom = ${mapLoaded.defaultZoom};
+		var defautCenterMapY = ${mapLoaded.centerMapX?c};
+		var defautCenterMapX = ${mapLoaded.centerMapY?c};
+	  
+	    //var map = L.map('map').setView([48.85632, 2.33272], 12);
+	    var map = L.map('map').setView([defautCenterMapX, defautCenterMapY], defaultZoom);
+        var points = [
+            <#list points as point>
+            {
+                "type": "${point.type}",
+                "code": "${point.code}",
+                "id": "${point.id}",
+                "geojson": ${point.geojson}
+            }<#if point_has_next>,</#if>
+            </#list>
+        ];
+
+        // create the tile layer with correct attribution
+        var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+        var osm = new L.TileLayer(osmUrl, {minZoom: 8, maxZoom: 16, attribution: osmAttrib}).addTo(map);
+
+        var marker_clusters = {};
+        var marker_icons = {};
+
+        //Workardound https://github.com/Leaflet/Leaflet/issues/3696
+        var defaultIcon = L.Icon.extend({
+            options: {
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41],
+                shadowUrl: L.Icon.Default.imagePath + '/marker-shadow.png'
+            }
+        });
+        var greenIcon = new defaultIcon({
+            iconUrl: L.Icon.Default.imagePath + '/marker-icon-green.png',
+            iconRetinaUrl: L.Icon.Default.imagePath + '/marker-icon-green-2x.png',
+        });
+        var yellowIcon = new defaultIcon({
+             iconUrl: L.Icon.Default.imagePath + '/marker-icon-yellow.png',
+             iconRetinaUrl: L.Icon.Default.imagePath + '/marker-icon-yellow-2x.png'
+        });
+        var redIcon = new defaultIcon({
+            iconUrl: L.Icon.Default.imagePath + '/marker-icon-red.png',
+            iconRetinaUrl: L.Icon.Default.imagePath + '/marker-icon-red-2x.png'
+        });
+        var createGreenCluster = function (cluster) {
+            var childCount = cluster.getChildCount();
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-small', iconSize: new L.Point(40, 40) });
+        };
+        var createYellowCluster = function (cluster) {
+            var childCount = cluster.getChildCount();
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) });
+        };
+        var createRedCluster = function (cluster) {
+            var childCount = cluster.getChildCount();
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-large', iconSize: new L.Point(40, 40) });
+        };
+
+        for (var i = 0; i < points.length; i++) {
+            var markers = undefined;
+            var icon = undefined;
+            var layer = "";
+            var popupContent = undefined;
+
+            var properties = points[i]["geojson"]["properties"];
+            if (typeof(properties) != 'undefined') {
+                layer = properties["layer"];
+            }
+            if (!layer) {
+                layer = points[i]["code"];
+            }
+            if (typeof(marker_clusters[layer]) != "undefined") {
+                markers = marker_clusters[layer];
+                icon    = marker_icons[layer];
+            } else {
+                if (typeof(properties) != 'undefined' && typeof(properties["icon"]) != 'undefined') {
+                    var clusterIconCreateFunction = undefined;
+                    if (properties["icon"] == 'red' ) {
+                        icon = redIcon;
+                        clusterIconCreateFunction = createRedCluster;
+                    } else if (properties["icon"] == 'green' ) {
+                        icon = greenIcon;
+                        clusterIconCreateFunction = createGreenCluster;
+                    } else if (properties["icon"] == 'yellow' ) {
+                        icon = yellowIcon;
+                        clusterIconCreateFunction = createYellowCluster;
+                    }
+
+                    if (typeof(clusterIconCreateFunction) != 'undefined') {
+                        markers = new L.MarkerClusterGroup({
+                            iconCreateFunction: clusterIconCreateFunction
+                        });
+                    }
+                }
+
+                if (typeof(icon) == 'undefined') {
+                    markers = new L.MarkerClusterGroup();
+                    icon = new L.Icon.Default();
+                }
+
+                marker_clusters[layer] = markers;
+                marker_icons[layer] = icon;
+            }
+
+			var marker;
+            
+            if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
+            	marker = L.marker([points[i]["geojson"]["geometry"]["coordinates"][1],points[i]["geojson"]["geometry"]["coordinates"][0]] ,{icon: icon});
+            }
+            else if ( points[i]["geojson"]["geometry"]["type"] == "Polygon" ) {
+                
+            	//var a = JSON.parse( points[i]["geojson"]["geometry"]["coordinates"] );
+            	var aPolygon = points[i]["geojson"]["geometry"]["coordinates"];
+			//var inverse = L.GeoJSON.coordsToLatLng(aPolygon) 
+    		    
+	    		marker = L.polygon(aPolygon, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
+            }
+            else if ( points[i]["geojson"]["geometry"]["type"] == "Polyline" ) {
+              	 var coordPolyline = points[i]["geojson"]["geometry"]["coordinates"];
+              	marker = L.polyline(coordPolyline );
+            }
+
+            if ( (typeof(properties) != 'undefined') && (typeof(properties["popupContent"]) != 'undefined') ) {
+                if (properties["popupContent"]) {
+                    marker.bindPopup(properties["popupContent"])
+                }
+            } else {
+                popupContent = points[i]["type"] + " " + points[i]["id"] + " " + points[i]["code"] + "...</p>";
+                marker.bindPopup(popupContent)
+                /*
+                marker.on('click', (function(point) {
+                    return function(e) {
+                        var properties = point["properties"];
+                        var popup = e.target.getPopup();
+                        var url;
+                        if ( (typeof(properties) != 'undefined') && (typeof(properties["popupAjax"]) != 'undefined') ) {
+                            url = properties["popupAjax"];
+                        } else {
+                            url = "rest/leaflet/popup/" + point["type"] + "/" + point["id"] + "/" + point["code"];
+                        }
+     
+                        $.get(url).done(function(data) {
+                            popup.setContent(data);
+                            popup.update();
+                        }).fail(function() {
+                            map.closePopup();
+                        });
+                    };
+                })(points[i]));
+                */
+            }
+
+            markers.addLayer(marker);
+        }
+        for (var markers in marker_clusters) {
+            if (marker_clusters.hasOwnProperty(markers)) {
+                map.addLayer(marker_clusters[markers]);
+            }
+        }
+
+      var baseMaps = {
+          "osm": osm
+      };
+      var overlayMaps = marker_clusters;
+      // paramétrage et ajout du L.control.layers à la carte
+      L.control.layers(baseMaps, overlayMaps).addTo(map);
+  });
+  </script>
+</#if>
+
+<div class="row">
+<#-- facets -->
+<div class="col-sm-3 well" >
+
+    <#-- Historique -->
+    <div id="histoique" class="portlet -lutece-border-radius append-bottom">
+        <table>
+            <tr>
+                <td>
+                    <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}${conf_query}">#i18n{search.solr.display.result.raffinement.clear}</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <#-- facet refining -->
+    <div id="facets" class="portlet -lutece-border-radius append-bottom">
+        <#-- facets field -->
+        <#if facets??><#-- empty or null when no connection to server -->
+        <#list facets as facet>
+        <#if facet.values?? >
+        <#-- when there is no result, facet is not null, but facet.values is -->
+        <table>
+            <th>
+                ${solr_fields[facet.name].label} 
+            </th>
+            <tr>
+                <td>
+                    <ul>
+                        <#list facet.values as count>
+				<#assign sh = "">
+            			<#list historique as fh>
+					<#if fh.name = facet.name+":"+count.name>
+						<#assign sh = facet.name+":"+count.name>
+					</#if>
+            			</#list>
+
+                        <li>
+ 			<#if sh?has_content >
+							${count.name}(${count.count})
+                            <a  class="glyphicon glyphicon-remove" href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}<@EncodeFQ facets_list sh?url />${conf_query}"></a>
+            <#else>
+                            <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}&facetlabel=${count.name}&facetname=${facet.name}&fq=${facet.name}:${count.name?url}<@EncodeFQ facets_list />${conf_query}">${count.name}(${count.count})</a>
+			</#if>
+                        </li>
+                        </#list>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+        </#if>
+        </#list>
+        </#if>
+
+        <#-- facets date refining -->
+        <#if facets_date??>
+        <#list facets_date as field>
+        <#if field.counts??>
+        <#-- when there is no result, facet is not null, but facet.counts is -->
+        <table>
+            <th>
+                ${solr_fields[field.name].label}
+            </th>
+            <tr>
+                <td>
+                    <ul>
+                        <#list field.counts as count>
+                        <#if count.count != 0>
+                        <li>
+                            <#assign toDate = "${count.value}"?datetime("yyyy-MM-dd'T'HH:mm:ss'Z'")>
+                            <#assign daterange = "${field.name}:[${count.value} TO ${count.value}${facetDateGap}]"?url>
+                            <#assign toString = "${toDate?string('yyyy')}">
+                                <#assign sh = "">
+                                <#list historique as fh>
+                                        <#if fh.name?url = daterange>
+                                                <#assign sh = daterange>
+                                        </#if>
+                                </#list>
+                        <#if sh?has_content >
+                                ${toString}(${count.count})
+                            <a class="glyphicon glyphicon-remove" href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}<@EncodeFQ  facets_list sh?url true />${conf_query}"></a>
+                        <#else>
+                            <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}&facetlabel=${toString}&facetname=${field.name}&fq=${daterange}<@EncodeFQ  facets_list />${conf_query}">${toString}(${count.count})</a>
+                        </#if>
+                        </li>
+                        </#if>
+                        </#list>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+        </#if>
+        </#list>
+        </#if>	
+    </div>
+
+    <#-- facets Intersection -->
+    <#if facet_tree??>
+    <div id="intersection" class="portlet -lutece-border-radius append-bottom">
+        <#list facet_tree?keys as key>
+        <table>
+            <th>
+                <#assign field1= "${key}"?split(",")[0] >
+                <#assign field2= "${key}"?split(",")[1] >
+                ${solr_fields[field1].label} / ${solr_fields[field2].label}
+            </th>
+            <#list facet_tree[key] as facet>
+            <#if facet.values??>
+            <#-- when there is no result, facet is not null, but facet.values is -->
+            <tr>
+                <td>
+                    <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}&fq=${field1}:${facet.name?url}<@EncodeFQ  facets_list/>${conf_query}">${facet.name}</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <ul>
+                        <#list facet.values as count>
+                        <li>
+                            <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&sort_name=${sort_name!}&sort_order=${sort_order!}&query=${query?url}&fq=${field1}:${facet.name?url}&fq=${field2}:${count.name?url}<@EncodeFQ  facets_list/>${conf_query}">${count.name}(${count.count})</a>
+                        </li>
+                        </#list>
+                    </ul>
+                </td>
+            </tr>
+            </#if>
+            </#list>
+        </table>
+        </#list>
+    </div>
+    </#if>
+
+    <#-- sort order -->
+    <#if sort_list??>
+    <div id="tri" class="portlet -lutece-border-radius append-bottom">
+        <table>
+            <th>
+                #i18n{search.solr.display.result.sort}
+            </th>
+            <#list sort_list as field>
+            <#if field.enableSort>
+            <tr>
+                <td>
+                    <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&query=${query?url}<@EncodeFQ  facets_list />&sort_name=${field.solrName}&sort_order=desc${conf_query}">${field.label} desc</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&query=${query?url}<@EncodeFQ  facets_list />&sort_name=${field.solrName}&sort_order=asc${conf_query}">${field.label} asc</a>
+                </td>
+            </tr>
+            </#if>
+            </#list>
+        </table>
+    </div>
+    </#if>
+</div>
+
+<#-- results -->
+<div id="resultList" class="col-sm-6">
+    <#-- new Search -->
+    <div id="newSearch" class="append-bottom ">
+	<div class="well">
+		<form name="search" method="post" action="${fullUrl}">
+		    <div class="hide">
+		        <input type="hidden" name="page" value="search-solr" />
+		        <#if conf_user_query??>
+		        <input type="hidden" name="conf" value="${conf_user_query}" />
+		        </#if>
+		        <input type="hidden" name="sort_name" value="${sort_name!}" />
+		        <input type="hidden" name="sort_order" value="${sort_order!}" />
+		        <#if facets_list??>
+		        <#list facets_list as facet>
+		        <input type="hidden" name="fq" value="${facet}" />
+		        </#list>
+		        </#if>
+
+		    </div>
+		    <div style="text-align:center;">
+		        <input type="text" name="query" size="35" value="${query?if_exists}" id="solr" /> 
+			<span>
+		        	<input type="submit" value="#i18n{portal.search.search_results.buttonSearch}" />
+			</span>
+		    </div>
+	    </div>
+
+            <div>
+                <#-- Number of documents per page selector -->
+                #i18n{portal.search.search_results.labelNbDocsPerPage}: 
+                <@NbItemsPerPageSelectorCombo nb_items_per_page?string />
+            </div>
+        </form>
+    </div>
+    <div id="resultList2" class="portlet -lutece-border-radius">
+    	<button id='Liste' class='outline toggle-listmap active p-2' type='button' aria-pressed="true" > Liste </button>
+        <button id='Carte' class='outline toggle-listmap p-2'  type='button' aria-pressed="false" > Carte </button>
+        <legend>#i18n{portal.search.search_results.title}</legend>
+        <#if error?has_content>
+        <div class="error">${error}</div>
+        </#if>
+        <div>#i18n{portal.search.search_results.labelResultsCount} : <strong>${paginator.itemsCount}</strong></div>
+        
+
+        <#-- spellChecker -->
+		<#if suggestion?has_content>
+        <div id="spellchecker">
+          #i18n{search.solr.display.result.spellchecker}
+          <#list suggestion as sugg>
+                <#assign newQuery="" >
+                <a href="${fullUrl}?page=search-solr&items_per_page=${nb_items_per_page}&query=${sugg.getCollationQueryString()?url}<@EncodeFQ  facets_list  />${conf_query}">${sugg.getCollationQueryString()}</a>
+        </#list>
+        </div>
+        </#if>
+
+
+        <div>&nbsp;</div>
+        <div id="pagination" class="pagination">
+            <p>
+                <@pagination paginator=paginator />
+            </p>
+        </div>
+		
+		<#if conf.extraMappingQuery>
+        
+        <div id="map" style="height: 400px; width: 100%"></div>
+        </#if>
+
+
+        <div id="resultItems" class="">
+            <div>
+                <#list results_list as result>
+                <div id="item" >
+                    <!-- <img src="document?id=${result.id}&id_attribute=79" style="float:left; margin-right:12px"/> -->
+                    <div style="font-weight:bold; font-size:1.2em">${result.title}</div>
+
+                    <#if result.summary??>${(result.highlight.map["summary"][0])!result.summary}</#if>
+                    <#if result.highlight??>
+                    <#-- get a extract from the "content" field where there is one (or more) of the searched words -->
+                    <#if result.highlight.map["content"]??>
+                    #i18n{search.solr.display.result.summary.extract} : 
+                    <#list result.highlight.map["content"] as extrait>
+                    ${extrait}
+                    </#list>
+                    </#if>
+                    </#if>
+                    <br />
+                    <div style="text-align:right; font-size:0.8em;" ><#if result.date?has_content>${result.date?date}</#if></div>
+                </div>
+		<hr/>
+                </#list>
+            </div>
+        </div>
+    </div>
+    <div>#i18n{portal.search.search_results.labelResultsRange} : <strong>${paginator.rangeMin} - ${paginator.rangeMax}</strong></div>
+</div>
+</div>
+<#-- Freemarker macros -->
+
+<#-- Number of items per page selector - Combo Box implementation -->
+<#macro NbItemsPerPageSelectorCombo nb_items_per_page>
+<select name="items_per_page">
+    <#list [ "10" , "20" , "50" , "100" ] as nb>
+    <#if nb_items_per_page = nb >
+    <option selected="selected" value="${nb}">${nb}</option>
+    <#else>
+    <option value="${nb}">${nb}</option>
+    </#if>
+    </#list>
+</select>
+</#macro>
+
+<#-- Number of items per page selector - Radio List implementation -->
+<#macro NbItemsPerPageSelectorRadioList nb_items_per_page>
+<#list [ "5" , "10" , "20" , "50" ] as nb>
+<#if nb = nb_items_per_page > 
+<input value="${nb}" id="items_per_page${nb}" name="items_per_page" class="radio" type="radio" checked /><label for="items_per_page${nb}">${nb}</label>
+<#else>
+<input value="${nb}" id="items_per_page${nb}" name="items_per_page" class="radio" type="radio" /><label for="items_per_page${nb}">${nb}</label>
+</#if>
+</#list>
+</#macro>
+
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+
+<script>
+
+$(function() {
+  $('#solr').autocomplete({
+    source: function(request, response) {
+      $.ajax({
+        url: '@base_url@servlet/plugins/SolrSuggest',
+        dataType: 'jsonp',
+minLength: 3,
+data: {
+q: request.term,
+},
+success: function(data) {
+var formattedResponse = $.map(data.response.docs, function (item) {
+return {
+label: item.title,
+value: item.title,
+};
+});
+response( formattedResponse );
+}
+});
+},
+
+});
+});
+
+
+</script>
+
+
+<script type="text/javascript">
+
+//$('#map-wrapper').toggleClass('map-absolute');
+$('#map').toggle();
+$('.toggle-listmap').on('click', function( ){
+        $('.toggle-listmap').each( function(){
+            if( $(this).attr('aria-pressed') === 'false' ){
+                $(this).attr('aria-pressed','true')
+            } else {
+                $(this).attr('aria-pressed','false')
+            }
+        });
+        $('.pagination').toggle();
+        $('#resultItems').toggle();
+       
+        $('#map').toggle();
+        //$('#map-wrapper').toggleClass('map-absolute');
+        // Send event to resize Map and center it
+        window.dispatchEvent(new Event('resize'))
+    });
+</script>

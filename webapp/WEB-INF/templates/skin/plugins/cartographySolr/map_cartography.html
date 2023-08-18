@@ -1,0 +1,810 @@
+<
+
+<@div class='position-relative'>
+    <@div id='forms-admin-map' params='style="height: 400px; width: 100%"'></@div>
+    <@button color='default' id='admin-forms-map-toggle'>
+        <@icon style='compress' title='Compresser' />
+    </@button> 
+</@div>
+
+
+
+
+
+
+
+
+<link href="css/admin/style/bootstrap4/all.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="js/jquery/plugins/toastr/toastr.min.css" >
+<script src="js/jquery/plugins/toastr/toastr.min.js"></script>
+<link href="js/plugins/leaflet/leaflet/leaflet.css" rel="stylesheet" />
+<link href="js/plugins/leaflet/leaflet/MarkerCluster.css" rel="stylesheet" />
+<link href="js/plugins/leaflet/leaflet/MarkerCluster.Default.css" rel="stylesheet" />
+<link href="js/admin/plugins/carto/leaflet.draw.css" rel="stylesheet"></script>
+<script type="text/javascript" src="js/plugins/leaflet/leaflet/leaflet.js"></script>
+<script type="text/javascript" src="js/plugins/leaflet/leaflet/leaflet.markercluster.js"></script>
+<script type="text/javascript" src="js/admin/plugins/carto/leaflet.draw.js"></script>
+<script type="text/javascript" src="js/admin/plugins/carto/BoundaryCanvas.js"></script>
+
+<script type="text/javascript">
+//Before map(s) is(are) being initialized.
+var _round = function(num, len) {
+    return Math.round(num*(Math.pow(10, len)))/(Math.pow(10, len));
+};
+// Helper method to format LatLng object (x.xxxxxx, y.yyyyyy)
+var strLatLng = function(latlng) {
+    return "("+_round(latlng.lat, 6)+", "+_round(latlng.lng, 6)+")";
+};
+
+// Generate popup content based on layer type
+// - Returns HTML string, or null if unknown object
+var getPopupContent = function(layer) {
+    // Marker - add lat/long
+    if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+        return strLatLng(layer.getLatLng());
+    // Circle - lat/long, radius
+    } else if (layer instanceof L.Circle) {
+        var center = layer.getLatLng(),
+            radius = layer.getRadius();
+        return "Center: "+strLatLng(center)+"<br />"
+              +"Radius: "+_round(radius, 2)+" m";
+    // Rectangle/Polygon - area
+    } else if (layer instanceof L.Polygon) {
+        var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+            area = L.GeometryUtil.geodesicArea(latlngs);
+        return "Area: "+L.GeometryUtil.readableArea(area, true);
+    // Polyline - distance
+    } else if (layer instanceof L.Polyline) {
+        var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+            distance = 0;
+        if (latlngs.length < 2) {
+            return "Distance: N/A";
+        } else {
+            for (var i = 0; i < latlngs.length-1; i++) {
+                distance += latlngs[i].distanceTo(latlngs[i+1]);
+            }
+            return "Distance: "+_round(distance, 2)+" m";
+        }
+    }
+    return null;
+};
+
+
+var mapsPlaceholder = [];
+
+	var defaultZoom = ${mapLoaded.defaultZoom};
+	var defautCenterMapY = ${mapLoaded.centerMapX?c};
+	var defautCenterMapX = ${mapLoaded.centerMapY?c};
+    //map = L.map('forms-admin-map').setView([48.85632, 2.33272], defaultZoom);
+    map = L.map('forms-admin-map').setView([defautCenterMapX, defautCenterMapY], defaultZoom);
+    //var points = JSON.parse($("#geojson_points").text());
+    // create the tile layer with correct attribution
+    //var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var osmUrl = '${basemap}';
+    var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+    var zoomMin = ${mapLoaded.zoomMin};
+    var zoomMax = ${mapLoaded.zoomMax};
+    var osm = new L.TileLayer(osmUrl, {minZoom: zoomMin, maxZoom: zoomMax, attribution: osmAttrib}).addTo(map);
+    //var markers = L.markerClusterGroup().addTo(map);
+    
+    
+    var marker_clusters = {};
+    var marker_icons = {};
+	
+    map.on('draw:created', function (e) {
+	    var type = e.layerType,
+		layer = e.layer;
+
+	    if (type === 'polygon') {
+			// structure the geojson object
+			var geojson = {};
+			geojson['type'] = 'Feature';
+			geojson['geometry'] = {};
+			geojson['geometry']['type'] = "Polygon";
+	
+			// export the coordinates from the layer
+			coordinates = [];
+			latlngs = layer.getLatLngs();
+			
+			//document.getElementById('coordinate_polygon').value = layer.getLatLngs();
+			document.getElementById('coordinate_polygon').value = "";
+			for (var i = 0; i < latlngs.length; i++) {
+			    coordinates.push([latlngs[i].lng, latlngs[i].lat])
+			    //document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
+			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			}
+			
+			if ( document.getElementById("action_createCoordonnee") != null )
+		    	document.getElementById("action_createCoordonnee").disabled = false;
+	    	if ( document.getElementsByName("action_doSaveStep")[0] != null )
+	    		document.getElementsByName("action_doSaveStep")[0].disabled = false;
+	
+			// push the coordinates to the json geometry
+			geojson['geometry']['coordinates'] = [coordinates];
+	
+			// Finally, show the poly as a geojson object in the console
+			console.log(JSON.stringify(geojson));
+
+	    }
+	    if (type === 'polyline') {
+	    	// export the coordinates from the layer
+			coordinates = [];
+			latlngs = layer.getLatLngs();
+			
+			//document.getElementById('coordinate_polygon').value = layer.getLatLngs();
+			document.getElementById('coordinate_polyline').value = "";
+			for (var i = 0; i < latlngs.length; i++) {
+			    coordinates.push([latlngs[i].lng, latlngs[i].lat])
+			    //document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
+			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			}
+			
+			if ( document.getElementById("action_createCoordonnee") != null )
+		    	document.getElementById("action_createCoordonnee").disabled = false;
+	    	if ( document.getElementsByName("action_doSaveStep")[0] != null )
+	    		document.getElementsByName("action_doSaveStep")[0].disabled = false;
+	    	
+	    }
+
+	    map.addLayer(layer);
+	});
+    
+    map.on('draw:edited', function (e) {
+	    var multiplelayers = e.layers;
+	    
+	    if ( document.getElementById("action_createCoordonnee") != null )
+	    	document.getElementById("action_createCoordonnee").disabled = false;
+    	if ( document.getElementsByName("action_doSaveStep")[0] != null )
+    		document.getElementsByName("action_doSaveStep")[0].disabled = false;
+	    multiplelayers.eachLayer(function (layerEdited) {
+		if (layerEdited instanceof L.Polygon){
+		    document.getElementById('coordinate_polygon').value = "";
+		    latlngs = layerEdited.getLatLngs();
+			for (var i = 0; i < latlngs.length; i++) {
+			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    var markerEdit = L.marker(latlngs[i]);
+			    if (! isMarkerInsideMultiPolygon( markerEdit, polygonInclusion ) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+					//alert("Achtung vertex en dehors de la zone");
+					toastr.error('#i18n{carto.manage_map.error.createPoint}');
+					document.getElementById('coordinate_polygon').value = "";
+					if ( document.getElementById("action_createCoordonnee") != null )
+						document.getElementById("action_createCoordonnee").disabled = true;
+					if ( document.getElementsByName("action_doSaveStep")[0] != null )
+			    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
+					return;
+				}
+			}
+		}
+		else if (layerEdited instanceof L.Polyline){
+		    document.getElementById('coordinate_polyline').value = "";
+		    latlngs = layerEdited.getLatLngs();
+			for (var i = 0; i < latlngs.length; i++) {
+			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    var markerEdit = L.marker(latlngs[i]);
+			    if (! isMarkerInsideMultiPolygon(markerEdit, polygonInclusion) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+					console.log("vertex en dehors de la zone");
+					//alert("vertex en dehors de la zone");
+					toastr.error('#i18n{carto.manage_map.error.createPoint}');
+					document.getElementById('coordinate_polyline').value = "";
+					if ( document.getElementById("action_createCoordonnee") != null )
+						document.getElementById("action_createCoordonnee").disabled = true;
+					if ( document.getElementsByName("action_doSaveStep")[0] != null )
+			    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
+					return;
+				}
+			}
+		}
+	    });
+	});
+	
+	
+	map.on('draw:editvertex', function (e) {
+	    var multiplelayers = e.layers;
+	    multiplelayers.eachLayer(function (layerEditedVertex) {
+		//latlngs = layerEdited.getLatLngs();
+		latlngs = layerEditedVertex.getLatLng();
+		console.log(latlngs);
+		var markerEdit = L.marker(latlngs);
+		if (! isMarkerInsideMultiPolygon( markerEdit, polygonInclusion ) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+			var oLatLng = layerEditedVertex._origLatLng;
+			//layerEditedVertex.setLatLng(oLatLng);
+		}
+		
+	    });
+	});
+	
+	var points = [
+            <#list points as point>
+            {
+                "code": "${point.code}",
+                "id": "${point.id}",
+                "geojson": ${point.geojson},
+                "datalayertitle" : "${point.data_layer_title}",
+                "iconPoint" : "<i class='fa fa-${point.layer_properties.pictogram} fa-${point.layer_properties.zoomMax}x'></i>",
+                "colorPolygon" : "${point.layer_properties.color!}",
+                "weight" : "${point.layer_properties.thickness!}",
+                "zoomMin" : "${point.layer_properties.zoomMin}",
+                "inclusion" : "${point.layer_type.inclusion?c}",
+                "exclusion" : "${point.layer_type.exclusion?c}"
+            }<#if point_has_next>,</#if>
+            </#list>
+        ];
+	
+	
+	const mapZoomLayer = new Map();
+	var polygonInclusion = new Array();
+    var polygonExclusion = new Array();
+	for (var i = 0; i < points.length; i++) {
+		var markers = undefined;
+        var icon = undefined;
+        var layer = "";
+        var popupContent = undefined;
+        
+
+        var properties = points[i]["geojson"]["properties"];
+        if (typeof(properties) != 'undefined') {
+            layer = properties["layer"];
+        }
+        if (!layer) {
+            layer = points[i]["datalayertitle"];
+        }
+        if (typeof(marker_clusters[layer]) != "undefined") {
+            markers = marker_clusters[layer];
+            icon    = marker_icons[layer];
+        } else {
+
+            if (typeof(icon) == 'undefined') {
+                markers = new L.MarkerClusterGroup();
+                icon = new L.Icon.Default();
+            }
+            marker_clusters[layer] = markers;
+            marker_icons[layer] = icon;
+        }
+        	
+        mapZoomLayer.set(layer,points[i]["zoomMin"]);
+            //Icon
+            const fontAwesomeIcon = L.divIcon({
+			    html: points[i]["iconPoint"],
+			    iconSize: [5, 5],
+			    className: 'myDivIcon'
+			});
+            if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
+	            var marker = L.marker([points[i]["geojson"]["geometry"]["coordinates"][1],points[i]["geojson"]["geometry"]["coordinates"][0]] ,{icon: fontAwesomeIcon});
+	
+	            if ( (typeof(properties) != 'undefined') && (typeof(properties["popupContent"]) != 'undefined') ) {
+	                if (properties["popupContent"]) {
+	                    marker.bindPopup(properties["popupContent"])
+	                }
+	            } else {
+	            	var popupContent = getPopupContent(marker);
+	                //popupContent = "<p>" + points[i]["id"] + " " + points[i]["code"] + "...</p>";
+	                marker.bindPopup(popupContent)
+	            }
+	
+	            markers.addLayer(marker);
+            }
+            else if ( points[i]["geojson"]["geometry"]["type"] == "Polygon" ) {
+                
+            	//var a = JSON.parse( points[i]["geojson"]["geometry"]["coordinates"] );
+            	var aPolygon = points[i]["geojson"]["geometry"]["coordinates"];
+//		var inverse = L.GeoJSON.coordsToLatLng(aPolygon)
+    		    
+	    		var polygon = L.polygon(aPolygon, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
+	    		var popupContent = getPopupContent(polygon);
+	    		polygon.bindPopup(popupContent)
+	            //polygon.addTo(map);
+	    		markers.addLayer(polygon);
+	    		if ( points[i]["inclusion"] === 'true' )
+	        	{
+	        		polygonInclusion.push( polygon );
+	        	}
+	    		else if ( points[i]["exclusion"] === 'true' )
+	        	{
+	        		polygonExclusion.push( polygon );
+	        	}
+            
+            
+            }
+			else if ( points[i]["geojson"]["geometry"]["type"] == "Polyline" ) {
+            	var aPolyline = points[i]["geojson"]["geometry"]["coordinates"];
+    			var polyline = L.polyline(aPolyline, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
+    			var popupContent = getPopupContent(polyline);
+    			polyline.bindPopup(popupContent)
+                //polyline.addTo(map);
+    			markers.addLayer(polyline);
+            }
+        }
+        for (var markers in marker_clusters) {
+            if (marker_clusters.hasOwnProperty(markers)) {
+                map.addLayer(marker_clusters[markers]);
+            }
+        }
+	
+	var baseMaps = {
+          "osm": osm
+        };
+      var overlayMaps = marker_clusters;
+      // paramétrage et ajout du L.control.layers à la carte
+      L.control.layers(baseMaps, overlayMaps).addTo(map);
+	
+	
+	//var marker = L.marker([51.5, -0.09]).addTo(map);
+    	//var marker2 = L.marker([48.85632, 2.33272]).addTo(map);
+    
+
+                var popup = L.popup();
+
+ 
+
+                //var marker = L.marker([48.85, 2.40]).addTo(map).bindPopup('<b>Popup</b><br />.').openPopup();
+
+ 
+
+ 
+
+                
+
+ 
+		/*
+                var polygon = L.polygon([
+
+                               [48.88, 2.4],
+
+                               [48.93, 2.45],
+
+                               [48.9, 2.48]
+
+                ], {
+
+                               color: 'black',
+
+                               fillColor: 'yellow',
+
+                               fillOpacity: 1                     
+
+                }).addTo(map).bindPopup('Ici');
+    		*/
+    
+    
+
+    
+    		map.on('zoomend', function() {
+	    	for (var markers in marker_clusters) {
+     	   		if ( map.getZoom() < parseInt(mapZoomLayer.get(markers ) ) && map.hasLayer( marker_clusters[markers] ) ){
+     	           	map.removeLayer( marker_clusters[markers] );
+     			}
+     	   		if ( map.getZoom() >= parseInt(mapZoomLayer.get(markers ) ) && !map.hasLayer( marker_clusters[markers] ) ){
+   					map.addLayer( marker_clusters[markers] );
+ 				}
+     		}
+
+      			    
+      		});
+  
+    //map.on('click', addMarker);
+    
+    // Initialise the FeatureGroup to store editable layers
+	var editableLayers = new L.FeatureGroup();
+	map.addLayer(editableLayers);
+	
+	var drawPluginOptions = {
+	  position: 'topright',
+	  draw: {
+	    polygon: {
+	      allowIntersection: false, // Restricts shapes to simple polygons
+	      drawError: {
+	        color: '#e1e100', // Color the shape will turn when intersects
+	        message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+	      },
+	      shapeOptions: {
+	        color: '#97009c'
+	      }
+	    },
+	    // disable toolbar item by setting it to false
+	    polyline: true,
+	    circle: false, // Turns off this drawing tool
+	    rectangle: false,
+	    marker: true,
+	    },
+	  edit: {
+	    featureGroup: editableLayers, //REQUIRED!!
+	    remove: true
+	  }
+	};
+	
+	// Initialise the draw control and pass it the FeatureGroup of editable layers
+	var drawControl = new L.Control.Draw(drawPluginOptions);
+	map.addControl(drawControl);
+	
+	<#if data_layer_editable??>
+	var typeDraw = "${data_layer_editable.geometryType.technicalName}";
+	if ( typeDraw === 'Point' )
+	{
+		//document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
+		//document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
+		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
+		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
+		document.getElementById("search_adress").style.visibility = 'visible';
+		//$('.leaflet-draw-draw-polygon').hide();
+		//$('.leaflet-draw-draw-polyline').hide();	
+	}
+	else if ( typeDraw === 'Polygon' )
+	{
+		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
+		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
+		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
+		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
+		document.getElementById("search_adress").style.visibility = 'hidden';
+		//$('.leaflet-draw-draw-marker').hide();
+		//$('.leaflet-draw-draw-polyline').hide();	
+	}
+	else if ( typeDraw === 'Polyline' )
+	{
+		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
+		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
+		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
+		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
+		document.getElementById("search_adress").style.visibility = 'hidden';
+		//$('.leaflet-draw-draw-polygon').hide();
+		//$('.leaflet-draw-draw-marker').hide();	
+	}
+<#else>
+	/*
+	$('.leaflet-draw-draw-polyline').hide();
+	$('.leaflet-draw-draw-polygon').hide();
+	$('.leaflet-draw-draw-marker').hide();
+	*/
+	document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
+	document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
+	document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
+	document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
+	document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
+	document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
+	document.getElementById("search_adress").style.visibility = 'hidden';
+</#if>
+	
+	//var editableLayers = new L.FeatureGroup();
+	//map.addLayer(editableLayers);
+	
+	/*
+	map.on('draw:created', function(e) {
+	  var type = e.layerType,
+	    layer = e.layer;
+	
+	  if (type === 'marker') {
+	    layer.bindPopup('A popup!');
+	  }
+	
+	  editableLayers.addLayer(layer);
+	});
+	*/
+	
+	// Truncate value based on number of decimals
+        var _round = function(num, len) {
+            return Math.round(num*(Math.pow(10, len)))/(Math.pow(10, len));
+        };
+        // Helper method to format LatLng object (x.xxxxxx, y.yyyyyy)
+        var strLatLng = function(latlng) {
+            return "("+_round(latlng.lat, 6)+", "+_round(latlng.lng, 6)+")";
+        };
+
+        // Generate popup content based on layer type
+        // - Returns HTML string, or null if unknown object
+        var getPopupContent = function(layer) {
+            // Marker - add lat/long
+            if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                return strLatLng(layer.getLatLng());
+            // Circle - lat/long, radius
+            } else if (layer instanceof L.Circle) {
+                var center = layer.getLatLng(),
+                    radius = layer.getRadius();
+                return "Centre: "+strLatLng(center)+"<br />"
+                      +"Radius: "+_round(radius, 2)+" m";
+            // Rectangle/Polygon - area
+            } else if (layer instanceof L.Polygon) {
+                var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                    area = L.GeometryUtil.geodesicArea(latlngs);
+                return "Zone : "+L.GeometryUtil.readableArea(area, true);
+            // Polyline - distance
+            } else if (layer instanceof L.Polyline) {
+                var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                    distance = 0;
+                if (latlngs.length < 2) {
+                    return "Distance: N/A";
+                } else {
+                    for (var i = 0; i < latlngs.length-1; i++) {
+                        distance += latlngs[i].distanceTo(latlngs[i+1]);
+                    }
+                    return "Distance: "+_round(distance, 2)+" m";
+                }
+            }
+            return null;
+        };
+
+        // Object created - bind popup to layer, add to feature group
+        map.on(L.Draw.Event.CREATED, function(event) {
+            var layer = event.layer;
+            var content = getPopupContent(layer);
+            if (content !== null) {
+                layer.bindPopup(content);
+            }
+            //NLG A enlever possiblement
+            //drawnItems.addLayer(layer);
+            editableLayers.addLayer(layer);
+        });
+
+        // Object(s) edited - update popups
+        /*
+        map.on(L.Draw.Event.EDITED, function(event) {
+            var layers = event.layers,
+                content = null;
+            layers.eachLayer(function(layer) {
+                content = getPopupContent(layer);
+                if (content !== null) {
+                    layer.setPopupContent(content);
+                }
+            });
+        });
+        */
+        
+        function isMarkerInsideMultiPolygon(marker, multiPoly) {
+    	    var inside = false;
+    	    if ( multiPoly.length == 0 )
+    	    {
+    	    	return true;
+    	    }
+    	    for (var i = 0; i < multiPoly.length; i++) {
+    		inside = isMarkerInsidePolygon(marker, multiPoly[i])
+    		if ( inside ) 
+    		{
+    			return inside
+    		}
+    	    }
+    	    
+    	    return inside;
+    	};
+    	
+    	function isMarkerOutsideMultiPolygon(marker, multiPoly) {
+    	    var outside = true;
+    	    if ( multiPoly.length == 0 )
+    	    {
+    	    	return true;
+    	    }
+    	    for (var i = 0; i < multiPoly.length; i++) {
+    		outside = !isMarkerInsidePolygon(marker, multiPoly[i])
+    		if ( !outside ) 
+    		{
+    			return outside
+    		}
+    	    }
+    	    
+    	    return outside;
+    	};
+        
+        function isMarkerInsidePolygon(marker, poly) {
+		    var polyPoints = poly.getLatLngs();       
+		    var x = marker.getLatLng().lat, y = marker.getLatLng().lng;
+	
+		    var inside = false;
+		    for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
+			var xi = polyPoints[i].lat, yi = polyPoints[i].lng;
+			var xj = polyPoints[j].lat, yj = polyPoints[j].lng;
+	
+			var intersect = ((yi > y) != (yj > y))
+			    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+			if (intersect) inside = !inside;
+		    }
+	
+		    return inside;
+		};
+        
+        // Empêcher l'utilisateur de placer des marqueurs en dehors du polygone        
+	
+	var markerPoint;
+	var markerPoly;
+	L.Draw.Marker.include({
+	  _onClick: function () {
+	    // our hack
+	    if ( !isMarkerInsideMultiPolygon( this._marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( this._marker, polygonExclusion ) ) {
+	    return;
+	    }
+	    
+	    document.getElementById('coordinate_x').value= this._marker.getLatLng().lng;
+	    document.getElementById('coordinate_y').value= this._marker.getLatLng().lat;
+	    // original code
+	    this._fireCreatedEvent();
+	    this.disable();
+	    if (this.options.repeatMode) {
+	      this.enable();
+	    }
+	    
+	  },
+	  
+	  _fireCreatedEvent: function () {
+		var marker = new L.Marker.Touch(this._marker.getLatLng(), {icon: this.options.icon});
+		L.Draw.Feature.prototype._fireCreatedEvent.call(this, marker);
+		
+		if ( map.hasLayer(markerPoint) )
+		    {
+		    	map.removeLayer( markerPoint )
+		    }
+		markerPoint = marker;
+	  }
+	});
+	
+	L.Draw.Polyline.include({
+	  _createMarker: function (latlng) {
+		var marker = new L.Marker(latlng, {
+			icon: this.options.icon,
+			zIndexOffset: this.options.zIndexOffset * 2
+		});
+
+		if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+	    return;
+	    }
+		//document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + marker.getLatLng().lng + "," + marker.getLatLng().lat +";";
+
+		this._markerGroup.addLayer(marker);
+
+		return marker;
+	},
+	addVertex: function (latlng) {
+		var markersLength = this._markers.length;
+		// markersLength must be greater than or equal to 2 before intersections can occur
+		if (markersLength >= 2 && !this.options.allowIntersection && this._poly.newLatLngIntersects(latlng)) {
+			this._showErrorTooltip();
+			return;
+		}
+		else if (this._errorShown) {
+			this._hideErrorTooltip();
+		}
+		
+		//NLG
+		var marker = new L.Marker(latlng, {
+			icon: this.options.icon,
+			zIndexOffset: this.options.zIndexOffset * 2
+		});
+
+		if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+		    return;
+		    }
+		
+		
+		this._markers.push(this._createMarker(latlng));
+
+		this._poly.addLatLng(latlng);
+
+		if (this._poly.getLatLngs().length === 2) {
+			this._map.addLayer(this._poly);
+		}
+
+		this._vertexChanged(latlng, true);
+	},
+	_fireCreatedEvent: function () {
+		var poly = new this.Poly(this._poly.getLatLngs(), this.options.shapeOptions);
+		L.Draw.Feature.prototype._fireCreatedEvent.call(this, poly);
+		
+		if ( map.hasLayer(markerPoly) )
+		    {
+		    	map.removeLayer( markerPoly )
+		    }
+		markerPoly = poly;
+	}
+	});
+	
+	mapsPlaceholder.push( map );
+
+/*
+function addMarker(e){
+    // Add marker to map at click location; add popup window
+    var newMarker = new L.marker(e.latlng).addTo(map);
+}
+*/
+
+// Add local storage param to show/hide map 
+$( function(){
+    const map = '#forms-admin-map', btnMap = '#forms-admin-map + button';
+    let mapVisibity = localStorage.getItem( 'admin-forms-map-visibility' );
+    let isMapVisible = mapVisibity != null ? ( mapVisibity === 'true' ) : true;
+    if( !isMapVisible ){
+        $( map ).toggle();
+        $( btnMap ).children().toggleClass('fa-expand');
+    }
+    $( '#admin-forms-map-toggle' ).on( 'click', function(){
+        $( map ).toggle();
+        $( btnMap ).children().toggleClass('fa-expand');
+        localStorage.setItem( 'admin-forms-map-visibility' , !isMapVisible )
+    });
+})
+</script>
+
+<link rel="stylesheet" type="text/css" href="js/jquery/plugins/ui/css/jquery-ui.css"/>
+
+<script type="text/javascript" src="js/jquery/jQuery.onReady.js"></script>
+<script type="text/javascript" src="js/jquery/plugins/ui/jquery-ui.custom-autocomplete.min.js"></script>
+<script type="text/javascript" src="jsp/site/plugins/address/modules/autocomplete/SetupSuggestPOI.js.jsp"></script>
+<script type="text/javascript" src="js/plugins/address/modules/autocomplete/jQuery.suggestPOI.js"></script>
+
+<script type="text/javascript">
+        $(window).on( 'load', function () {
+            const currStep=$('.step-current .step-content'), hasCheckAdr=currStep.find('.checkaddress').length;
+            if( hasCheckAdr > 0 ){
+                currStep.addClass('checkadress');
+                currStep.find('[name="action_doSaveStep"]').attr('disabled','disabled');
+            }
+
+            var jAdresse = $('#center_map');
+            var jAdresseId = $('#4_idAddress');
+            var jAdresseX = $('#coordinate_x');
+            var jAdresseY = $('#coordinate_y');
+            var jAdresseGeometry = $('#4_geometry');
+            
+            
+            jAdresse.suggestPOI();
+            jAdresse.bind( $.suggestPOI.EVT_SELECT, function (event) {
+                event.preventDefault();
+                var marker = L.marker( [event.poi.y, event.poi.x]);
+                if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+					toastr.error('#i18n{carto.manage_map.error.createPoint}');
+					return;
+				}
+                jAdresseGeometry.val(event.poi.type);
+                jAdresseY.val(event.poi.y);
+                jAdresseX.val(event.poi.x);
+                if ( map.hasLayer(markerPoint) )
+    		    {
+    		    	map.removeLayer( markerPoint )
+    		    }
+                marker.addTo(map);
+                markerPoint = marker;
+                
+                jAdresseId.val(event.poi.id);
+				jAdresse.addClass('wssuggest');
+				jAdresse.removeClass('is-invalid').next('.invalid-feedback').remove();
+            });
+			
+			/* Remove unused field with wsadress */
+			$('#4_address_results').remove();
+			
+			/* JIRA :           																	 */
+			/* Check if an entry has been selected in the data list and prevent from validating step */
+            
+
+            var wsv = sessionStorage.getItem('wsvalidated_4');
+            if( wsv === 'done' ){
+                jAdresse.addClass('wssuggest');
+                jAdresse.removeClass('is-invalid').next('.invalid-feedback').remove();
+                $('[name="action_doSaveStep"]').removeAttr('disabled');
+            } 
+
+            if( hasCheckAdr > 0 ){
+                jAdresse.on( 'focus', (e) => {
+                    if( $(e.target).hasClass('wsvalidated') ){
+                        $(e.target).addClass('wssuggest');
+                    }
+                });
+                
+                jAdresse.on( 'keyup', (e) => {
+                    if( $(e.target).hasClass('wssuggest') ){
+                        $(e.target).removeClass('wssuggest').removeClass('wsvalidated');
+                        $('.btn-action').attr('disabled','disabled');
+                    }
+                });
+                
+                jAdresse.on( 'blur', (e) => {
+                    if( !$(e.target).hasClass('wssuggest') ){
+                        $(e.target).addClass('is-invalid');
+                        $(e.target).next('.invalid-feedback').length===0 ? $(e.target).after('<div class="invalid-feedback">Vous devez sélectionner un adresse dans la liste proposée.</div>') : '';
+                        $('.btn-action').attr('disabled','disabled');
+                        $(e.target).focus();
+                    } else {
+                        $(e.target).addClass('wsvalidated').removeClass('wssuggest').removeClass('is-invalid').next('.invalid-feedback').remove();
+                        $('.btn-action').removeAttr('disabled');
+                        sessionStorage.setItem('wsvalidated_4', 'done');
+                    }
+                });
+            }
+            
+        });
+</script>
+

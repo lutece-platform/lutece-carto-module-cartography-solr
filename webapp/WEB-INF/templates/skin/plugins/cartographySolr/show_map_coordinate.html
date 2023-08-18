@@ -1,0 +1,93 @@
+<@tform class='form-horizontal' action='jsp/site/Portal.jsp?page=coordinate' >
+	<@select name='idMap' id="idMap" items=list_map  />
+	<@formGroup>
+		<@button id='action_loadMap' name='action_loadMap' type='submit' tabIndex='3' title='#i18n{carto.manage_map.loadMap}' buttonIcon='plus' />
+	</@formGroup>
+</@tform>
+
+<#if mapLoaded?? >
+
+
+<@tform class='form-horizontal' action='jsp/site/Portal.jsp?page=coordinate' >
+				<@messages errors=errors />
+				<@input type="hidden" type="hidden" id="id" name="id"/>
+				<@input type="hidden"  name="coordinate_x" id="coordinate_x"/>
+				<@input type="hidden"  name="coordinate_y" id="coordinate_y" />
+				<@input type="hidden" name="coordinate_polygon" id="coordinate_polygon" />
+				<@input type="hidden" name="coordinate_polyline" id="coordinate_polyline" />
+				<p  id="search_adress">
+				Chercher adresse
+				<@input type='text' id='center_map' name='center_map'  maxlength=255 tabIndex='6' />
+				<@input type="hidden" id='4_idAddress' name='4_idAddress'  value="" />
+			    <@input type="hidden"  id='4_geometry' name='4_geometry'  value="" />
+			    </p>
+				
+				<#if data_layer_editable??>
+					<@input type="hidden" name="iddatalayer" id="iddatalayer" value='${data_layer_editable.id!\'\'}' />    
+	        		<@formGroup>
+	          			<@button id='action_createCoordonnee' name='action_createCoordonnee' type='submit' tabIndex='3' title='#i18n{portal.util.labelCreate}' buttonIcon='plus' />
+					</@formGroup>
+				</#if>
+    </@tform>
+ 
+ <#include "map_cartography.html" />
+    
+<div id="9_addr_list" class="list-group col-md-8 col-md-offset-1" style=" height:300px;border:1px solid black;margin-top:5px;overflow:auto">
+<#list points as point>
+ <li class="list-group-item" onclick='chooseAddr(${point.geojson});return false;' >Coordonnées ${point.code!} ${point.geojson} </li>
+
+ </#list>
+ </div>
+
+</#if>
+<script type="text/javascript">
+var addr;
+var markerChoose = null;
+/*
+var searchInput = "#" + genericAttributes_id + "_address";
+var xInput = "#" + genericAttributes_id + "_x";
+var yInput = "#" + genericAttributes_id + "_y";
+var resultAff = "#" + genericAttributes_id + "_addr_list";
+*/
+
+function chooseAddr( coordGeoJson )
+{
+
+	var location;
+	/*
+	searchInput = "#" + genericAttributes_id + "_address";
+	xInput = "#" + genericAttributes_id + "_x";
+	yInput = "#" + genericAttributes_id + "_y";
+	resultAff = "#" + genericAttributes_id + "_addr_list";
+	*/
+	if (markerChoose != null)
+		map.removeLayer(markerChoose);
+	if ( coordGeoJson["geometry"]["type"] == "Point" )
+	{
+		lat = coordGeoJson["geometry"]["coordinates"][1];
+		lon = coordGeoJson["geometry"]["coordinates"][0];
+		location = new L.LatLng(lat, lon);
+	}
+	else if ( coordGeoJson["geometry"]["type"] == "Polygon" )
+	{
+		coordPoly = coordGeoJson["geometry"]["coordinates"];
+		var polygon = L.polygon(coordPoly );
+		location = polygon.getBounds().getCenter();
+	}
+	else if ( coordGeoJson["geometry"]["type"] == "Polyline" )
+	{
+		coordPoly = coordGeoJson["geometry"]["coordinates"];
+		var polyline = L.polyline(coordPoly );
+		location = polyline.getBounds().getCenter();
+	}
+	markerChoose = L.marker(location).addTo(map);
+	map.panTo(location);
+	map.setZoom(15);
+	/*
+	addr = elem.innerHTML;
+	$(searchInput).val(addr);
+	$(xInput).val(lon);
+	$(yInput).val(lat);
+	*/
+}
+</script>

@@ -1,0 +1,9 @@
+<#macro tabs2 tab >
+<@tabs>
+	<@tabList>
+			<li <#if tab="coordonnee">class="active"</#if>>
+				<a href="jsp/site/Portal.jsp?page=coordonnee">#i18n{carto.manage_coordonnees.pageTitle}</a>
+			</li>
+	</@tabList>
+</@tabs>
+</#macro>
