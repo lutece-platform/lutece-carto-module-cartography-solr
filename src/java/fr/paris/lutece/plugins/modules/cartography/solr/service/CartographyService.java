@@ -24,6 +24,7 @@ import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
 public class CartographyService {
 	
@@ -40,6 +41,9 @@ public class CartographyService {
     public static final String MARK_LAYER_PROPERTIES = "layer_properties";
     public static final String MARK_LAYER_TYPE = "layer_type";
     public static final String PARAMETER_SOLR_GEOJSON = "DataLayer_text";
+    public static final String MARK_LIMIT_VERTEX = "limit_vertex";
+    
+    private static final String PROPERTY_LIMIT_VERTEX = "map.limit.vertex";
 	
 	/**
      * Returns a model with points data from a geoloc search
@@ -171,6 +175,7 @@ public class CartographyService {
         model.put( CartographyService.MARK_POINTS, points );
         model.put( CartographyService.MARK_MAP, map );
         model.put( MARK_BASEMAP, BasemapHome.findByPrimaryKey( Integer.valueOf( map.getMapBackground( ) ) ).get( ).getUrl( ) );
+        model.put( MARK_LIMIT_VERTEX, AppPropertiesService.getProperty( PROPERTY_LIMIT_VERTEX) );
         if ( dataLayerEditable.isPresent( ) )
         {
         	model.put( CartographyService.MARK_LAYER_EDITABLE, dataLayerEditable.get( ) );

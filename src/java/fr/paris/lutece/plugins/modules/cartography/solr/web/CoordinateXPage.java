@@ -49,6 +49,7 @@ import fr.paris.lutece.plugins.carto.business.MapTemplateHome;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItem;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItemPolygon;
 import fr.paris.lutece.plugins.leaflet.service.IconService;
+import fr.paris.lutece.plugins.modules.cartography.solr.service.CartographyService;
 import fr.paris.lutece.plugins.search.solr.business.SolrFacetedResult;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchAppConf;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
@@ -163,52 +164,7 @@ public class CoordinateXPage extends MVCApplication
 	        MapTemplate map = MapTemplateHome.findByPrimaryKey( _idMap ).get();
 	        //List<Coordonnee> listCoordonnees = CoordonneeHome.getCoordonneesList(  );
 	        
-	        SolrSearchEngine engine = SolrSearchEngine.getInstance( );
-	        
-	     // Use default conf if the requested one doesn't exist
-	        SolrSearchAppConf conf = SolrSearchAppConfService.loadConfiguration( "conf" );
-	        
-	        if ( conf == null )
-	        {
-	            // Use default conf if the requested one doesn't exist
-	            conf = SolrSearchAppConfService.loadConfiguration( null );
-	        }
-	        /*
-	        SolrFacetedResult facetedResult = engine.getFacetedSearchResults( "*:*", new String [] {conf.getFieldList()}, null, "uid","asc", 100, 1 ,
-	                100, false );
-	        List<SolrSearchResult> listResults = facetedResult.getSolrSearchResults( );
-	        */
-	        
-	        List<HashMap<String, Object>> points = new ArrayList<HashMap<String, Object>> ();
-	        List<DataLayer> lstDatalayer = DataLayerMapTemplateHome.getDataLayerListByMapTemplateId( map.getId() );
-	        Optional<DataLayer> dataLayerEditable  = DataLayerHome.findDataLayerFromMapId( map.getId( ), true, false, false );
-	        //StringBuilder query = new StringBuilder("DataLayer_text:");
-	        for (DataLayer datalayer : lstDatalayer)
-	        {
-	        	List<SolrSearchResult> listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, 100 );
-	        	Optional<DataLayerMapTemplate> dataLayerMapTemplate = DataLayerMapTemplateHome.findByIdMapKeyIdDataLayerKey( map.getId( ), datalayer.getId( ) );
-	        	points.addAll( getGeolocModel( listResultsGeoloc, datalayer, dataLayerMapTemplate.get( ) ) );
-	        }
-	
-	        //List<SolrSearchResult> listResultsGeoloc = engine.getGeolocSearchResults( query.toString( ), null, 100 );
-	        //points = getGeolocModel( listResultsGeoloc );
-	        
-	
-	        
-	        
-	        //model.put( MARK_COORDONNEE_LIST, listCoordonnees );
-	        model.put( MARK_POINTS, points );
-	        model.put( MARK_MAP, map );
-	        model.put( MARK_BASEMAP, BasemapHome.findByPrimaryKey( Integer.valueOf( map.getMapBackground( ) ) ).get( ).getUrl( ) );
-	        
-	        if ( dataLayerEditable.isPresent( ) )
-	        {
-	        	model.put( MARK_LAYER_EDITABLE, dataLayerEditable.get( ) );
-	        }
-	        //model.put( MARK_LIST_LAYER_MAP, DataLayerMapTemplateHome.getDataLayerMapTemplateListByMapTemplateId( map.getId( ) ) );
-	        
-	        //IMapProvider _mapProvider = SpringContextService.getBean( "genericattributes-openstreetmap.mapProvider" );
-	        //IMapProvider _mapProvider = MapProviderManager.getMapProvider( map.getMapBackground() );
+	        CartographyService.loadMapAndPoints( map, model );
         }
         return getXPage( TEMPLATE_SHOW_MAP_COORDINATE, getLocale( request ), model );
     }

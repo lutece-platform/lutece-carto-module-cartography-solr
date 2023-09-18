@@ -659,6 +659,13 @@ var mapsPlaceholder = [];
 			this._hideErrorTooltip();
 		}
 		
+		var limitVertex = '${limit_vertex}';
+		if ( markersLength >= limitVertex )
+		{
+			toastr.error('#i18n{carto.manage_map.error.toomuchvertex}');
+			return;
+		}
+		
 		//NLG
 		var marker = new L.Marker(latlng, {
 			icon: this.options.icon,
