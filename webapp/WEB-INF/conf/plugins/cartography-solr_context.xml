@@ -7,5 +7,6 @@
         class="fr.paris.lutece.plugins.modules.cartography.solr.indexer.SolrCoordinateIndexer" />
         
     <bean id="carto.cartoSolrAppAddon" class="fr.paris.lutece.plugins.modules.cartography.solr.service.CartoSolrAppAddon" />
+    <bean id="carto.cartoSolrMarkerProvider" class="fr.paris.lutece.plugins.modules.cartography.solr.provider.CartoSolrMarkerProvider" />
  </beans>
  	
