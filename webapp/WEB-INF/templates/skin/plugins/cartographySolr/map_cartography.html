@@ -1,4 +1,4 @@
-<@div class='position-relative'>
+	<@div class='position-relative'>
     <@div id='forms-admin-map' params='style="height: 400px; width: 100%"'></@div>
     <@button color='default' id='admin-forms-map-toggle'>
         <@icon style='compress' title='Compresser' />
@@ -220,7 +220,7 @@ var mapsPlaceholder = [];
                 "id": "${point.id}",
                 "geojson": ${point.geojson},
                 "datalayertitle" : "${point.data_layer_title}",
-                "datalayerpopup" : '${point.data_layer_popup}',
+                "datalayerpopup" : "${point.data_layer_popup}",
                 "iconPoint" : "<i class='fa fa-${point.layer_properties.pictogram} fa-${point.layer_properties.zoomMax}x'></i>",
                 "colorPolygon" : "${point.layer_properties.color!}",
                 "weight" : "${point.layer_properties.thickness!}",
