@@ -15,14 +15,14 @@
 <link href="css/admin/style/bootstrap4/all.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="js/jquery/plugins/toastr/toastr.min.css" >
 <script src="js/jquery/plugins/toastr/toastr.min.js"></script>
-<link href="js/plugins/leaflet/leaflet/leaflet.css" rel="stylesheet" />
-<link href="js/plugins/leaflet/leaflet/MarkerCluster.css" rel="stylesheet" />
+<link href="js/plugins/carto/leaflet/leaflet.css" rel="stylesheet" />
+<link href="js/plugins/carto/leaflet/MarkerCluster.css" rel="stylesheet" />
 <link href="js/plugins/leaflet/leaflet/MarkerCluster.Default.css" rel="stylesheet" />
-<link href="js/admin/plugins/carto/leaflet.draw.css" rel="stylesheet"></script>
-<script type="text/javascript" src="js/plugins/leaflet/leaflet/leaflet.js"></script>
-<script type="text/javascript" src="js/plugins/leaflet/leaflet/leaflet.markercluster.js"></script>
-<script type="text/javascript" src="js/admin/plugins/carto/leaflet.draw.js"></script>
-<script type="text/javascript" src="js/admin/plugins/carto/BoundaryCanvas.js"></script>
+<link href="js/plugins/carto/leafletdraw/leaflet.draw.css" rel="stylesheet"></script>
+<script type="text/javascript" src="js/plugins/carto/leaflet/leaflet-src.js"></script>
+<script type="text/javascript" src="js/plugins/carto/leaflet/leaflet.markercluster.js"></script>
+<script type="text/javascript" src="js/plugins/carto/leafletdraw/leaflet.draw.js"></script>
+<script type="text/javascript" src="js/plugins/carto/leafletdraw/BoundaryCanvas.js"></script>
 
 <script type="text/javascript">
 //Before map(s) is(are) being initialized.
@@ -73,19 +73,14 @@ var getPopupContent = function(layer) {
 var mapsPlaceholder = [];
 
 	var defaultZoom = ${mapLoaded.defaultZoom};
-	var defautCenterMapY = ${mapLoaded.centerMapX?c};
-	var defautCenterMapX = ${mapLoaded.centerMapY?c};
-    //map = L.map('forms-admin-map').setView([48.85632, 2.33272], defaultZoom);
+	var defautCenterMapY = ${mapLoaded.centerMapY?c};
+	var defautCenterMapX = ${mapLoaded.centerMapX?c};
     map = L.map('forms-admin-map').setView([defautCenterMapX, defautCenterMapY], defaultZoom);
-    //var points = JSON.parse($("#geojson_points").text());
-    // create the tile layer with correct attribution
-    //var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     var osmUrl = '${basemap}';
     var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
     var zoomMin = ${mapLoaded.zoomMin};
     var zoomMax = ${mapLoaded.zoomMax};
     var osm = new L.TileLayer(osmUrl, {minZoom: zoomMin, maxZoom: zoomMax, attribution: osmAttrib}).addTo(map);
-    //var markers = L.markerClusterGroup().addTo(map);
     
     
     var marker_clusters = {};
@@ -106,12 +101,16 @@ var mapsPlaceholder = [];
 			coordinates = [];
 			latlngs = layer.getLatLngs();
 			
+			if(!L.LineUtil.isFlat(latlngs)){
+				latlngs = latlngs[0];
+			}
+			
 			//document.getElementById('coordinate_polygon').value = layer.getLatLngs();
 			document.getElementById('coordinate_polygon').value = "";
 			for (var i = 0; i < latlngs.length; i++) {
 			    coordinates.push([latlngs[i].lng, latlngs[i].lat])
 			    //document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
-			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			}
 			
 			if ( document.getElementById("action_createCoordonnee") != null )
@@ -131,12 +130,16 @@ var mapsPlaceholder = [];
 			coordinates = [];
 			latlngs = layer.getLatLngs();
 			
+			if(!L.LineUtil.isFlat(latlngs)){
+				latlngs = latlngs[0];
+			}
+			
 			//document.getElementById('coordinate_polygon').value = layer.getLatLngs();
 			document.getElementById('coordinate_polyline').value = "";
 			for (var i = 0; i < latlngs.length; i++) {
 			    coordinates.push([latlngs[i].lng, latlngs[i].lat])
 			    //document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
-			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			}
 			
 			if ( document.getElementById("action_createCoordonnee") != null )
@@ -160,8 +163,13 @@ var mapsPlaceholder = [];
 		if (layerEdited instanceof L.Polygon){
 		    document.getElementById('coordinate_polygon').value = "";
 		    latlngs = layerEdited.getLatLngs();
+		    
+		    if(!L.LineUtil.isFlat(latlngs)){
+				latlngs = latlngs[0];
+			}
+		    
 			for (var i = 0; i < latlngs.length; i++) {
-			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			    var markerEdit = L.marker(latlngs[i]);
 			    if (! isMarkerInsideMultiPolygon( markerEdit, polygonInclusion ) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
 					//alert("Achtung vertex en dehors de la zone");
@@ -178,8 +186,13 @@ var mapsPlaceholder = [];
 		else if (layerEdited instanceof L.Polyline){
 		    document.getElementById('coordinate_polyline').value = "";
 		    latlngs = layerEdited.getLatLngs();
+		    
+		    if(!L.LineUtil.isFlat(latlngs)){
+				latlngs = latlngs[0];
+			}
+		    
 			for (var i = 0; i < latlngs.length; i++) {
-			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lat + "," + latlngs[i].lng + ";"
+			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			    var markerEdit = L.marker(latlngs[i]);
 			    if (! isMarkerInsideMultiPolygon(markerEdit, polygonInclusion) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
 					console.log("vertex en dehors de la zone");
@@ -270,7 +283,9 @@ var mapsPlaceholder = [];
 			    className: 'myDivIcon'
 			});
             if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
-	            var marker = L.marker([points[i]["geojson"]["geometry"]["coordinates"][1],points[i]["geojson"]["geometry"]["coordinates"][0]] ,{icon: fontAwesomeIcon});
+	            
+            	/*
+            	var marker = L.marker([points[i]["geojson"]["geometry"]["coordinates"][0],points[i]["geojson"]["geometry"]["coordinates"][1]] ,{icon: fontAwesomeIcon});
 	
 	            if ( (typeof(properties) != 'undefined') && (typeof(properties["popupContent"]) != 'undefined') ) {
 	                if (properties["popupContent"]) {
@@ -278,24 +293,28 @@ var mapsPlaceholder = [];
 	                }
 	            } else {
 	            	var popupContent = getPopupContent(marker);
-	                //popupContent = "<p>" + points[i]["id"] + " " + points[i]["code"] + "...</p>";
-	                //marker.bindPopup(popupContent)
 	                marker.bindPopup(points[i]["datalayerpopup"])
 	            }
 	
 	            markers.addLayer(marker);
+	            */
+		    	var marker = L.geoJSON( points[i]["geojson"], {
+			        pointToLayer: function (feature, latlng) {
+			   			return L.marker(latlng, {icon: fontAwesomeIcon});
+			  		},
+					onEachFeature: function (feature, layer) {
+			  			layer.bindPopup( points[i]["datalayerpopup"] );
+					} 
+			  	} );	    
+		        markers.addLayer(marker);
             }
             else if ( points[i]["geojson"]["geometry"]["type"] == "Polygon" ) {
                 
-            	//var a = JSON.parse( points[i]["geojson"]["geometry"]["coordinates"] );
-            	var aPolygon = points[i]["geojson"]["geometry"]["coordinates"];
-//		var inverse = L.GeoJSON.coordsToLatLng(aPolygon)
+            	var aPolygon = points[i]["geojson"]["geometry"]["coordinates"][0];
+				var inverse = L.GeoJSON.coordsToLatLngs(aPolygon)
     		    
-	    		var polygon = L.polygon(aPolygon, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-	    		var popupContent = getPopupContent(polygon);
-	    		//polygon.bindPopup(popupContent)
+	    		var polygon = L.polygon(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
 	    		polygon.bindPopup(points[i]["datalayerpopup"]);
-	            //polygon.addTo(map);
 	    		markers.addLayer(polygon);
 	    		if ( points[i]["inclusion"] === 'true' )
 	        	{
@@ -310,11 +329,9 @@ var mapsPlaceholder = [];
             }
 			else if ( points[i]["geojson"]["geometry"]["type"] == "Polyline" ) {
             	var aPolyline = points[i]["geojson"]["geometry"]["coordinates"];
-    			var polyline = L.polyline(aPolyline, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-    			var popupContent = getPopupContent(polyline);
-    			//polyline.bindPopup(popupContent)
+            	var inverse = L.GeoJSON.coordsToLatLngs(aPolyline);
+    			var polyline = L.polyline(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
     			polyline.bindPopup(points[i]["datalayerpopup"]);
-                //polyline.addTo(map);
     			markers.addLayer(polyline);
             }
         }
@@ -371,6 +388,7 @@ var mapsPlaceholder = [];
 	    circle: false, // Turns off this drawing tool
 	    rectangle: false,
 	    marker: true,
+	    circlemarker : false
 	    },
 	  edit: {
 	    featureGroup: editableLayers, //REQUIRED!!
@@ -386,64 +404,28 @@ var mapsPlaceholder = [];
 	var typeDraw = "${data_layer_editable.geometryType.technicalName}";
 	if ( typeDraw === 'Point' )
 	{
-		//document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
-		//document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
 		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
-		document.getElementById("search_adress").style.visibility = 'visible';
-		//$('.leaflet-draw-draw-polygon').hide();
-		//$('.leaflet-draw-draw-polyline').hide();	
+		document.getElementById("search_adress").style.visibility = 'visible';	
 	}
 	else if ( typeDraw === 'Polygon' )
 	{
-		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
-		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
 		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
 		document.getElementById("search_adress").style.visibility = 'hidden';
-		//$('.leaflet-draw-draw-marker').hide();
-		//$('.leaflet-draw-draw-polyline').hide();	
 	}
 	else if ( typeDraw === 'Polyline' )
 	{
-		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
-		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
 		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
-		document.getElementById("search_adress").style.visibility = 'hidden';
-		//$('.leaflet-draw-draw-polygon').hide();
-		//$('.leaflet-draw-draw-marker').hide();	
+		document.getElementById("search_adress").style.visibility = 'hidden';	
 	}
 <#else>
-	/*
-	$('.leaflet-draw-draw-polyline').hide();
-	$('.leaflet-draw-draw-polygon').hide();
-	$('.leaflet-draw-draw-marker').hide();
-	*/
-	document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.visibility = 'hidden';
-	document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.visibility = 'hidden';
-	document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.visibility = 'hidden';
 	document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 	document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
 	document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
 	document.getElementById("search_adress").style.visibility = 'hidden';
 </#if>
-	
-	//var editableLayers = new L.FeatureGroup();
-	//map.addLayer(editableLayers);
-	
-	/*
-	map.on('draw:created', function(e) {
-	  var type = e.layerType,
-	    layer = e.layer;
-	
-	  if (type === 'marker') {
-	    layer.bindPopup('A popup!');
-	  }
-	
-	  editableLayers.addLayer(layer);
-	});
-	*/
 	
 	// Truncate value based on number of decimals
         var _round = function(num, len) {
@@ -515,24 +497,23 @@ var mapsPlaceholder = [];
     	    return outside;
     	};
         
+
         function isMarkerInsidePolygon(marker, poly) {
 		    var polyPoints = poly.getLatLngs();       
 		    var x = marker.getLatLng().lat, y = marker.getLatLng().lng;
 	
 		    var inside = false;
-		    for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
-			var xi = polyPoints[i].lat, yi = polyPoints[i].lng;
-			var xj = polyPoints[j].lat, yj = polyPoints[j].lng;
+		    for (var i = 0, j = polyPoints[0].length - 1; i < polyPoints.length; j = i++) {
+		    	var xi = polyPoints[0][i].lat, yi = polyPoints[0][i].lng;
+				var xj = polyPoints[0][j].lat, yj = polyPoints[0][j].lng;
 	
-			var intersect = ((yi > y) != (yj > y))
-			    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-			if (intersect) inside = !inside;
+				var intersect = ((yi > y) != (yj > y))
+				    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+				if (intersect) inside = !inside;
 		    }
 	
 		    return inside;
-		};
-        
-        // Empêcher l'utilisateur de placer des marqueurs en dehors du polygone        
+		};        
 	
 	var markerPoint;
 	var markerPoly;
@@ -558,7 +539,7 @@ var mapsPlaceholder = [];
 		var marker = new L.Marker.Touch(this._marker.getLatLng(), {icon: this.options.icon});
 		L.Draw.Feature.prototype._fireCreatedEvent.call(this, marker);
 		
-		if ( map.hasLayer(markerPoint) )
+		if ( markerPoint != undefined && map.hasLayer(markerPoint) )
 		    {
 		    	map.removeLayer( markerPoint )
 		    }
@@ -625,7 +606,7 @@ var mapsPlaceholder = [];
 		var poly = new this.Poly(this._poly.getLatLngs(), this.options.shapeOptions);
 		L.Draw.Feature.prototype._fireCreatedEvent.call(this, poly);
 		
-		if ( map.hasLayer(markerPoly) )
+		if ( markerPoly != undefined && map.hasLayer(markerPoly) )
 		    {
 		    	map.removeLayer( markerPoly )
 		    }
@@ -634,13 +615,6 @@ var mapsPlaceholder = [];
 	});
 	
 	mapsPlaceholder.push( map );
-
-/*
-function addMarker(e){
-    // Add marker to map at click location; add popup window
-    var newMarker = new L.marker(e.latlng).addTo(map);
-}
-*/
 
 // Add local storage param to show/hide map 
 $( function(){
@@ -692,7 +666,7 @@ $( function(){
                 jAdresseGeometry.val(event.poi.type);
                 jAdresseY.val(event.poi.y);
                 jAdresseX.val(event.poi.x);
-                if ( map.hasLayer(markerPoint) )
+                if ( markerPoint != undefined && map.hasLayer(markerPoint) )
     		    {
     		    	map.removeLayer( markerPoint )
     		    }

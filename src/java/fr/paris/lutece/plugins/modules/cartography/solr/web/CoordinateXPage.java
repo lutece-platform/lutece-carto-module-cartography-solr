@@ -371,6 +371,8 @@ public class CoordinateXPage extends MVCApplication
         
         GeolocItemPolygon geoPolygon = new GeolocItemPolygon();
         List<List<Double>> polygonLonLoat = new ArrayList<>( );
+        List<List<List<Double>>> polygonCoord = new ArrayList<>( );
+        HashMap<String, Object> geometryPolygon = new HashMap<>( );
         
         for (String coordPolygonXY : lstCoordPolygon )
         {
@@ -379,10 +381,23 @@ public class CoordinateXPage extends MVCApplication
             double polygony = Double.valueOf( coordPolygonXY2[1] );
             polygonLonLoat.add( Arrays.asList( polygonx, polygony ) );
         }
+        // End polygon with first coordinate for polygon
+        if ( strTypeGeometry.equals( GeolocItemPolygon.VALUE_GEOMETRY_TYPE_POLYGON ) )
+        {
+	        String [] coordPolygonXY2 = lstCoordPolygon[0].split( "," );
+	    	double polygonx = Double.valueOf( coordPolygonXY2[0] );
+	        double polygony = Double.valueOf( coordPolygonXY2[1] );
+	        polygonLonLoat.add( Arrays.asList( polygonx, polygony ) );
+	        polygonCoord.add( polygonLonLoat );
+	        geometryPolygon.put( GeolocItem.PATH_GEOMETRY_COORDINATES, polygonCoord );
+        }
+        else if ( strTypeGeometry.equals( GeolocItemPolygon.VALUE_GEOMETRY_TYPE_POLYLINE ) )
+        {
+        	geometryPolygon.put( GeolocItem.PATH_GEOMETRY_COORDINATES, polygonLonLoat );
+        }
         
         
-        HashMap<String, Object> geometryPolygon = new HashMap<>( );
-        geometryPolygon.put( GeolocItem.PATH_GEOMETRY_COORDINATES, polygonLonLoat );
+        
         geoPolygon.setGeometry( geometryPolygon );
         geoPolygon.setTypegeometry( strTypeGeometry );
         
