@@ -93,7 +93,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CoordinateXPage extends MVCApplication
 {
     // Templates
-    private static final String TEMPLATE_SHOW_MAP_COORDINATE = "/skin/plugins/cartographySolr/show_map_coordinate.html";
+    private static final String TEMPLATE_SHOW_MAP_COORDINATE = "/skin/plugins/carto/show_map_coordinate.html";
     private static final String TEMPLATE_CREATE_COORDONNEE = "/skin/plugins/carto/create_coordonnee.html";
     private static final String TEMPLATE_MODIFY_COORDONNEE = "/skin/plugins/carto/modify_coordonnee.html";
     
