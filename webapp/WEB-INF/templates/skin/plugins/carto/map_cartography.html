@@ -303,7 +303,9 @@ var mapsPlaceholder = [];
 			   			return L.marker(latlng, {icon: fontAwesomeIcon});
 			  		},
 					onEachFeature: function (feature, layer) {
-			  			layer.bindPopup( points[i]["datalayerpopup"] );
+			  			layer.bindPopup( points[i]["datalayerpopup"], {
+			  			  closeButton: false
+			  			} );
 					} 
 			  	} );	    
 		        markers.addLayer(marker);
@@ -314,7 +316,9 @@ var mapsPlaceholder = [];
 				var inverse = L.GeoJSON.coordsToLatLngs(aPolygon)
     		    
 	    		var polygon = L.polygon(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-	    		polygon.bindPopup(points[i]["datalayerpopup"]);
+	    		polygon.bindPopup(points[i]["datalayerpopup"], {
+	    			  closeButton: false
+	    		});
 	    		markers.addLayer(polygon);
 	    		if ( points[i]["inclusion"] === 'true' )
 	        	{
@@ -331,7 +335,9 @@ var mapsPlaceholder = [];
             	var aPolyline = points[i]["geojson"]["geometry"]["coordinates"];
             	var inverse = L.GeoJSON.coordsToLatLngs(aPolyline);
     			var polyline = L.polyline(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-    			polyline.bindPopup(points[i]["datalayerpopup"]);
+    			polyline.bindPopup(points[i]["datalayerpopup"], {
+    				  closeButton: false
+    			});
     			markers.addLayer(polyline);
             }
         }
