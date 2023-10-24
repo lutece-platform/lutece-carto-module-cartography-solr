@@ -51,6 +51,7 @@ public class CartographyService {
     public static final String MARK_LIMIT_VERTEX = "limit_vertex";
     
     private static final String PROPERTY_LIMIT_VERTEX = "map.limit.vertex";
+    private static final String PROPERTY_LIMIT_RESULT_SOLR = "map.limit.result.solr";
 	
 	/**
      * Returns a model with points data from a geoloc search
@@ -215,10 +216,11 @@ public class CartographyService {
         List<HashMap<String, Object>> points = new ArrayList<HashMap<String, Object>> ( );
         List<DataLayer> lstDatalayer = DataLayerMapTemplateHome.getDataLayerListByMapTemplateId( map.getId( ) );
         Optional<DataLayer> dataLayerEditable  = DataLayerHome.findDataLayerFromMapId( map.getId( ), true, false, false );
+        int nlimit = AppPropertiesService.getPropertyInt( PROPERTY_LIMIT_RESULT_SOLR, 100 );
         
         for (DataLayer datalayer : lstDatalayer)
         {
-        	List<SolrSearchResult> listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, 100 );
+        	List<SolrSearchResult> listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, nlimit );
         	Optional<DataLayerMapTemplate> dataLayerMapTemplate = DataLayerMapTemplateHome.findByIdMapKeyIdDataLayerKey( map.getId( ), datalayer.getId( ) );
         	points.addAll( CartographyService.getGeolocModel( listResultsGeoloc, datalayer, dataLayerMapTemplate.get( ) ) );
         }
