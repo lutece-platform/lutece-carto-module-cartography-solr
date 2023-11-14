@@ -13,14 +13,9 @@
 				<@input type="hidden" type="hidden" id="id" name="id"/>
 				<@input type="hidden"  name="coordinate_x" id="coordinate_x"/>
 				<@input type="hidden"  name="coordinate_y" id="coordinate_y" />
-				<@input type="text" name="coordinate_polygon" id="coordinate_polygon" />
-				<@input type="text" name="coordinate_polyline" id="coordinate_polyline" />
-				<p  id="search_adress">
-				Chercher adresse
-				<@input type='text' id='center_map' name='center_map'  maxlength=255 tabIndex='6' />
-				<@input type="hidden" id='4_idAddress' name='4_idAddress'  value="" />
-			    <@input type="hidden"  id='4_geometry' name='4_geometry'  value="" />
-			    </p>
+				<@input type="hidden" name="coordinate_polygon" id="coordinate_polygon" />
+				<@input type="hidden" name="coordinate_polyline" id="coordinate_polyline" />
+				
 				
 				<#if data_layer_editable??>
 					<@input type="hidden" name="iddatalayer" id="iddatalayer" value='${data_layer_editable.id!\'\'}' />    
@@ -70,14 +65,16 @@ function chooseAddr( coordGeoJson )
 	}
 	else if ( coordGeoJson["geometry"]["type"] == "Polygon" )
 	{
-		coordPoly = coordGeoJson["geometry"]["coordinates"];
-		var polygon = L.polygon(coordPoly );
+		coordPoly = coordGeoJson["geometry"]["coordinates"][0];
+		var inverseCoord = L.GeoJSON.coordsToLatLngs(coordPoly);
+		var polygon = L.polygon(inverseCoord );
 		location = polygon.getBounds().getCenter();
 	}
 	else if ( coordGeoJson["geometry"]["type"] == "Polyline" )
 	{
 		coordPoly = coordGeoJson["geometry"]["coordinates"];
-		var polyline = L.polyline(coordPoly );
+		var inverseCoord = L.GeoJSON.coordsToLatLngs(coordPoly);
+		var polyline = L.polyline(inverseCoord );
 		location = polyline.getBounds().getCenter();
 	}
 	markerChoose = L.marker(location).addTo(map);

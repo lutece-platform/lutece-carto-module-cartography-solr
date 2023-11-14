@@ -1,3 +1,4 @@
+<#include "map_cartography.html" />
 <input type="hidden" id="id" name="id"/>
 <input type="hidden" name="coordinate_x" id="coordinate_x"/>
 <input type="hidden" name="coordinate_y" id="coordinate_y" />
@@ -6,11 +7,3 @@
 <#if data_layer_editable??>
 	<@input type="hidden" name="iddatalayer" id="iddatalayer" value='${data_layer_editable.id!\'\'}' />    
 </#if>
-<p  id="search_adress">
-	Chercher adresse
-	<@input type='text' id='center_map' name='center_map'  maxlength=255 tabIndex='6' />
-	<@input type="hidden" id='4_idAddress' name='4_idAddress'  value="" />
-	<@input type="hidden" id='4_geometry' name='4_geometry'  value="" />
-</p>
-
-<#include "map_cartography.html" />
