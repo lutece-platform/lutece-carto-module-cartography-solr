@@ -514,7 +514,7 @@ var mapsPlaceholder = [];
 		    var x = marker.getLatLng().lat, y = marker.getLatLng().lng;
 	
 		    var inside = false;
-		    for (var i = 0, j = polyPoints[0].length - 1; i < polyPoints.length; j = i++) {
+		    for (var i = 0, j = polyPoints[0].length - 1; i < polyPoints[0].length; j = i++) {
 		    	var xi = polyPoints[0][i].lat, yi = polyPoints[0][i].lng;
 				var xj = polyPoints[0][j].lat, yj = polyPoints[0][j].lng;
 	
