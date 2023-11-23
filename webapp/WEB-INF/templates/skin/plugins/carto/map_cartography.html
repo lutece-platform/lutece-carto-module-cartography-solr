@@ -74,9 +74,10 @@ var getPopupContent = function(layer) {
     return null;
 };
 
-
-var mapsPlaceholder = [];
-
+	//map dont overlap menu in BO
+	var rdiv = document.getElementById("forms-admin-map");
+	rdiv.style.zIndex = 0;
+	var mapsPlaceholder = [];
 	var defaultZoom = ${mapLoaded.defaultZoom};
 	var defautCenterMapY = ${mapLoaded.centerMapY?c};
 	var defautCenterMapX = ${mapLoaded.centerMapX?c};
