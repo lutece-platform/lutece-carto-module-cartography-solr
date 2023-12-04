@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2017, Mairie de Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 package fr.paris.lutece.plugins.modules.cartography.solr.service;
 
 import fr.paris.lutece.portal.service.plugin.PluginDefaultImplementation;
-
 
 /**
  * class GenericAttributesOpenStreetMapPlugin

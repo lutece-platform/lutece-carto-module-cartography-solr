@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2021, City of Paris
+ * Copyright (c) 2002-2023, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ public class SolrCoordinateIndexer implements SolrIndexer
      */
     public List<String> indexDocuments( )
     {
-        List<Coordonnee> lstCoord = CoordonneeHome.getCoordonneesList();
+        List<Coordonnee> lstCoord = CoordonneeHome.getCoordonneesList( );
         List<String> lstErrors = new ArrayList<>( );
         List<SolrItem> lstSolrItems = new ArrayList<>( );
 
@@ -136,24 +136,24 @@ public class SolrCoordinateIndexer implements SolrIndexer
      */
     private SolrItem getItem( Coordonnee coord, String strUrl ) throws SiteMessageException
     {
-        
-    	// make a new, empty SolrItem
+
+        // make a new, empty SolrItem
         SolrItem solrItem = new SolrItem( );
         String nIdCoordinate = String.valueOf( coord.getId( ) );
-        solrItem.setIdResource(  nIdCoordinate );
+        solrItem.setIdResource( nIdCoordinate );
         solrItem.setSite( SolrIndexerService.getWebAppName( ) );
         solrItem.setRole( "Cartography" );
         solrItem.setType( "Cartography" + "_" + coord.getId( ) );
-        solrItem.setUid( coord.getId() + "_Coordonnees"  );
+        solrItem.setUid( coord.getId( ) + "_Coordonnees" );
         solrItem.setTitle( "Coordonnees" + " #" + nIdCoordinate );
-        solrItem.setContent("");
-        //solrItem.setDate( formResponse.getCreation( ) );
-        solrItem.setUrl( "jsp/site/Portal.jsp?page=formsResponse&id_response="+nIdCoordinate );
+        solrItem.setContent( "" );
+        // solrItem.setDate( formResponse.getCreation( ) );
+        solrItem.setUrl( "jsp/site/Portal.jsp?page=formsResponse&id_response=" + nIdCoordinate );
 
-        solrItem.addDynamicFieldGeoloc("coordonnee_geojson", coord.getGeoJson(), "Coordonnee");
-        solrItem.addDynamicField("DataLayer", String.valueOf( coord.getDataLayer( ).getSolrTag( ) ) );
-    	
-    	return solrItem;
+        solrItem.addDynamicFieldGeoloc( "coordonnee_geojson", coord.getGeoJson( ), "Coordonnee" );
+        solrItem.addDynamicField( "DataLayer", String.valueOf( coord.getDataLayer( ).getSolrTag( ) ) );
+
+        return solrItem;
     }
 
     /**
@@ -215,8 +215,8 @@ public class SolrCoordinateIndexer implements SolrIndexer
         try
         {
             int nIdDocument = Integer.parseInt( strIdDocument );
-            //Page page = PageHome.getPage( nIdDocument );
-            Coordonnee coord = CoordonneeHome.findByPrimaryKey(nIdDocument).get();
+            // Page page = PageHome.getPage( nIdDocument );
+            Coordonnee coord = CoordonneeHome.findByPrimaryKey( nIdDocument ).get( );
             lstItems.add( getItem( coord, SolrIndexerService.getBaseUrl( ) ) );
         }
         catch( Exception e )
