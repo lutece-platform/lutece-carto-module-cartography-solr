@@ -396,7 +396,9 @@ var getPopupContent = function(layer) {
 	      }
 	    },
 	    // disable toolbar item by setting it to false
-	    polyline: true,
+	    polyline: {
+	    	allowIntersection: false
+	    },
 	    circle: false, // Turns off this drawing tool
 	    rectangle: false,
 	    marker: true,
@@ -404,7 +406,10 @@ var getPopupContent = function(layer) {
 	    },
 	  edit: {
 	    featureGroup: editableLayers, //REQUIRED!!
-	    remove: true
+	    remove: true,
+	    poly: {
+            allowIntersection: false
+        }
 	  }
 	};
 	
