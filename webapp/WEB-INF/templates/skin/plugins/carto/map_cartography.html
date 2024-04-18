@@ -83,7 +83,8 @@ var getPopupContent = function(layer) {
 	var defautCenterMapX = ${mapLoaded.centerMapX?c};
     map = L.map('forms-admin-map').setView([defautCenterMapX, defautCenterMapY], defaultZoom);
     var osmUrl = '${basemap}';
-    var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+    //var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+    var osmAttrib= '${basemap_attribution}';
     var zoomMin = ${mapLoaded.zoomMin};
     var zoomMax = ${mapLoaded.zoomMax};
     var osm = new L.TileLayer(osmUrl, {minZoom: zoomMin, maxZoom: zoomMax, attribution: osmAttrib}).addTo(map);

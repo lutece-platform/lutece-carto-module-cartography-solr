@@ -80,6 +80,7 @@ public class CartographyService
     public static final String MARK_MAP = "mapLoaded";
     public static final String MARK_BASEMAP = "basemap";
     public static final String MARK_BASEMAP_TITLE = "basemap_title";
+    public static final String MARK_BASEMAP_ATTRIBUTION = "basemap_attribution";
     public static final String MARK_LAYER_PROPERTIES = "layer_properties";
     public static final String MARK_LAYER_TYPE = "layer_type";
     public static final String PARAMETER_SOLR_GEOJSON = "DataLayer_text";
@@ -290,6 +291,7 @@ public class CartographyService
         model.put( CartographyService.MARK_MAP, map );
         model.put( MARK_BASEMAP, BasemapHome.findByPrimaryKey( Integer.valueOf( map.getMapBackground( ) ) ).get( ).getUrl( ) );
         model.put( MARK_BASEMAP_TITLE, BasemapHome.findByPrimaryKey( Integer.valueOf( map.getMapBackground( ) ) ).get( ).getTitle( ) );
+        model.put( MARK_BASEMAP_ATTRIBUTION, BasemapHome.findByPrimaryKey( Integer.valueOf( map.getMapBackground( ) ) ).get( ).getAttribution( ) );
         model.put( MARK_LIMIT_VERTEX, AppPropertiesService.getProperty( PROPERTY_LIMIT_VERTEX ) );
         if ( dataLayerEditable.isPresent( ) )
         {
