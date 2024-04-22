@@ -28,6 +28,7 @@
 <script type="text/javascript" src="js/plugins/carto/leaflet/leaflet.markercluster.js"></script>
 <script type="text/javascript" src="js/plugins/carto/leafletdraw/leaflet.draw.js"></script>
 <script type="text/javascript" src="js/plugins/carto/leafletdraw/BoundaryCanvas.js"></script>
+<script type="text/javascript" src="js/plugins/carto/turf/turf.min.js"></script>
 
 <script type="text/javascript">
 //Before map(s) is(are) being initialized.
@@ -98,6 +99,21 @@ var getPopupContent = function(layer) {
 		layer = e.layer;
 
 	    if (type === 'polygon') {
+	    	
+	    	var intersection = isPolygonIntersect(layer);
+			
+			if ( intersection ) 
+			{
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPolygonExclusif}');
+				document.getElementById('coordinate_polygon').value = "";
+				if ( document.getElementById("action_createCoordonnee") != null )
+					document.getElementById("action_createCoordonnee").disabled = true;
+				if ( document.getElementsByName("action_doSaveStep")[0] != null )
+		    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
+				return;
+			}
+	    	
+	    	
 			// structure the geojson object
 			var geojson = {};
 			geojson['type'] = 'Feature';
@@ -133,6 +149,20 @@ var getPopupContent = function(layer) {
 
 	    }
 	    if (type === 'polyline') {
+	    	
+	    	var intersection = isPolylineIntersect( layer );
+			if ( intersection.features.length > 0 ) 
+			{
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPolylineExclusif}');
+				document.getElementById('coordinate_polyline').value = "";
+				if ( document.getElementById("action_createCoordonnee") != null )
+					document.getElementById("action_createCoordonnee").disabled = true;
+				if ( document.getElementsByName("action_doSaveStep")[0] != null )
+		    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
+				return;
+
+			}
+	    	
 	    	// export the coordinates from the layer
 			coordinates = [];
 			latlngs = layer.getLatLngs();
@@ -175,19 +205,36 @@ var getPopupContent = function(layer) {
 				latlngs = latlngs[0];
 			}
 		    
+		    var isErrorVertex = false;
+			var intersection = isPolygonIntersect(layerEdited);
+
+			if ( intersection ) 
+			{
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPolygonExclusif}');
+				isErrorVertex = true;
+			}
+		    
 			for (var i = 0; i < latlngs.length; i++) {
 			    document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			    var markerEdit = L.marker(latlngs[i]);
-			    if (! isMarkerInsideMultiPolygon( markerEdit, polygonInclusion ) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
-					//alert("Achtung vertex en dehors de la zone");
-					toastr.error('#i18n{carto.manage_map.error.createPoint}');
-					document.getElementById('coordinate_polygon').value = "";
+
+			    if ( !isMarkerInsideMultiPolygon( markerEdit, polygonInclusion ) ) {
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+					isErrorVertex = true;
+				}
+			    if ( !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+					isErrorVertex = true;
+				}
+			    if ( isErrorVertex )
+			    {
+			    	document.getElementById('coordinate_polygon').value = "";
 					if ( document.getElementById("action_createCoordonnee") != null )
 						document.getElementById("action_createCoordonnee").disabled = true;
 					if ( document.getElementsByName("action_doSaveStep")[0] != null )
 			    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
 					return;
-				}
+			    }
 			}
 		}
 		else if (layerEdited instanceof L.Polyline){
@@ -198,20 +245,38 @@ var getPopupContent = function(layer) {
 				latlngs = latlngs[0];
 			}
 		    
+		    var isErrorVertex = false;
+			var intersection = isPolylineIntersect( layerEdited );
+			
+			if ( intersection.features.length > 0 ) 
+			{
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPolylineExclusif}');
+				isErrorVertex = true;
+			}
+		    
 			for (var i = 0; i < latlngs.length; i++) {
 			    document.getElementById('coordinate_polyline').value = document.getElementById('coordinate_polyline').value + latlngs[i].lng + "," + latlngs[i].lat + ";"
 			    var markerEdit = L.marker(latlngs[i]);
-			    if (! isMarkerInsideMultiPolygon(markerEdit, polygonInclusion) || !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+
+			    if (! isMarkerInsideMultiPolygon(markerEdit, polygonInclusion) ) {
 					console.log("vertex en dehors de la zone");
-					//alert("vertex en dehors de la zone");
-					toastr.error('#i18n{carto.manage_map.error.createPoint}');
-					document.getElementById('coordinate_polyline').value = "";
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+					isErrorVertex = true;
+				}
+			    if ( !isMarkerOutsideMultiPolygon( markerEdit, polygonExclusion ) ) {
+					console.log("vertex en dehors de la zone");
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+					isErrorVertex = true;
+				}
+			    if ( isErrorVertex )
+			    {
+			    	document.getElementById('coordinate_polyline').value = "";
 					if ( document.getElementById("action_createCoordonnee") != null )
 						document.getElementById("action_createCoordonnee").disabled = true;
 					if ( document.getElementsByName("action_doSaveStep")[0] != null )
 			    		document.getElementsByName("action_doSaveStep")[0].disabled = true;
 					return;
-				}
+			    }
 			}
 		}
 	    });
@@ -514,6 +579,80 @@ var getPopupContent = function(layer) {
     	    
     	    return outside;
     	};
+    	
+    	function isPolygonIntersect( polyIntersect ){
+    		
+    		if ( polygonExclusion.length > 0 )
+    		{
+    		
+				var polygonCoords2 = polygonExclusion[0].getLatLngs()[0];
+				
+				// Transformer les coordonnées en un format compatible avec Turf.js
+				var turfCoordsExclu = polygonCoords2.map(function(latlng) {
+				    return [latlng.lng, latlng.lat];
+				});
+				// Mettre les coordonnees du premier point à la fin pour avoir un polygon correct
+				turfCoordsExclu.push( turfCoordsExclu[0] );
+				
+				
+				var polygonCoords = polyIntersect.getLatLngs()[0]; // Leaflet stocke les coordonnées dans un tableau de tableaux
+	
+				// Transformer les coordonnées en un format compatible avec Turf.js
+				var turfCoords = polygonCoords.map(function(latlng) {
+				    return [latlng.lng, latlng.lat];
+				});
+				// Mettre les coordonnees du premier point à la fin pour avoir un polygon correct
+				turfCoords.push( turfCoords[0] );
+	
+				// Créer un turf.polygon
+				var turfPolygon = turf.polygon( [ turfCoords ] );
+				var turfPolygonExclu = turf.polygon( [ turfCoordsExclu ] );
+				
+				var intersection = turf.intersect(turfPolygon, turfPolygonExclu);
+				return intersection;
+    		}
+    		else
+    		{
+    			return false;
+    		}
+    	};
+    	
+    	function isPolylineIntersect( polyline ) {
+    	
+    		if ( polygonExclusion.length > 0 )
+    		{
+	    	
+	    	    var polygonCoords2 = polygonExclusion[0].getLatLngs()[0];
+	    		
+	    		// Transformer les coordonnées en un format compatible avec Turf.js
+	    		var turfCoordsExclu = polygonCoords2.map(function(latlng) {
+	    		    return [latlng.lng, latlng.lat];
+	    		});
+	    		turfCoordsExclu.push( turfCoordsExclu[0] );
+	    		
+	    		
+	    		var polygonCoords = polyline.getLatLngs(); // Leaflet stocke les coordonnées dans un tableau de tableaux
+
+	    		// Transformer les coordonnées en un format compatible avec Turf.js
+	    		var turfCoords = polygonCoords.map(function(latlng) {
+	    		    return [latlng.lng, latlng.lat];
+	    		});
+	    		turfCoords.push( turfCoords[0] );
+
+	    		// Créer un turf.polygon
+	    		var turfPolyline = turf.lineString( turfCoords );
+	    		var turfPolygonExclu = turf.polygon( [ turfCoordsExclu ] );
+	    		
+	    		
+	    		var intersection = turf.lineIntersect(turfPolyline, turfPolygonExclu);
+	    		
+	    		return intersection;
+    		}
+    		else {
+    			return false
+    		}
+    	
+    	};
         
 
         function isMarkerInsidePolygon(marker, poly) {
@@ -595,7 +734,7 @@ var getPopupContent = function(layer) {
 		var limitVertex = '${limit_vertex}';
 		if ( markersLength >= limitVertex )
 		{
-			toastr.error('#i18n{carto.manage_map.error.toomuchvertex}');
+			toastr.error('#i18n{module.cartography.solr.manage_map.error.toomuchvertex}');
 			return;
 		}
 		
@@ -678,7 +817,11 @@ $( function(){
                 event.preventDefault();
                 var marker = L.marker( [event.poi.y, event.poi.x]);
                 if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
-					toastr.error('#i18n{carto.manage_map.error.createPoint}');
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+					return;
+				}
+                if ( !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
 					return;
 				}
                 jAdresseGeometry.val(event.poi.type);
