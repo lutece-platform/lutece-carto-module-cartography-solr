@@ -4,9 +4,9 @@
 <beans>
 <!-- Indexer -->
     <bean id="solr.solrCoordinateIndexer"
-        class="fr.paris.lutece.plugins.modules.cartography.solr.indexer.SolrCoordinateIndexer" />
+        class="fr.paris.lutece.plugins.cartography.modules.solr.indexer.SolrCoordinateIndexer" />
         
-    <bean id="carto.cartoSolrAppAddon" class="fr.paris.lutece.plugins.modules.cartography.solr.service.CartoSolrAppAddon" />
-    <bean id="carto.cartoSolrMarkerProvider" class="fr.paris.lutece.plugins.modules.cartography.solr.provider.CartoSolrMarkerProvider" />
+    <bean id="carto.cartoSolrAppAddon" class="fr.paris.lutece.plugins.cartography.modules.solr.service.CartoSolrAppAddon" />
+    <bean id="carto.cartoSolrMarkerProvider" class="fr.paris.lutece.plugins.cartography.modules.solr.provider.CartoSolrMarkerProvider" />
  </beans>
  	

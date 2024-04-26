@@ -31,7 +31,7 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.modules.cartography.solr.service;
+package fr.paris.lutece.plugins.cartography.modules.solr.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,10 +55,10 @@ import fr.paris.lutece.plugins.carto.business.DataLayerMapTemplateHome;
 import fr.paris.lutece.plugins.carto.business.DataLayerType;
 import fr.paris.lutece.plugins.carto.business.DataLayerTypeHome;
 import fr.paris.lutece.plugins.carto.business.MapTemplate;
+import fr.paris.lutece.plugins.cartography.modules.solr.provider.CartoSolrMarkerProvider;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItem;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItemPolygon;
 import fr.paris.lutece.plugins.leaflet.service.IconService;
-import fr.paris.lutece.plugins.modules.cartography.solr.provider.CartoSolrMarkerProvider;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;

@@ -3,7 +3,7 @@
         
     <!-- Plugin Informations -->
 	<name>cartography-solr</name>
-	<class>fr.paris.lutece.plugins.modules.cartography.solr.service.CartographySolrPlugin</class>
+	<class>fr.paris.lutece.plugins.cartography.modules.solr.service.CartographySolrPlugin</class>
 	<version>1.0.1-SNAPSHOT</version>
 	<description>module.cartography.solr.module.description</description>
 	<documentation/>
@@ -28,7 +28,7 @@
     <applications>
         <application>
             <application-id>coordinate</application-id>
-            <application-class>fr.paris.lutece.plugins.modules.cartography.solr.web.CoordinateXPage</application-class>
+            <application-class>fr.paris.lutece.plugins.cartography.modules.solr.web.CoordinateXPage</application-class>
         </application>
     </applications>
     

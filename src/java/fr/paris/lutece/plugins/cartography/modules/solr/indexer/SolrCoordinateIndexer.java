@@ -31,7 +31,7 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.modules.cartography.solr.indexer;
+package fr.paris.lutece.plugins.cartography.modules.solr.indexer;
 
 import java.util.ArrayList;
 import java.util.List;

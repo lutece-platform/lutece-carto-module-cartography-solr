@@ -31,7 +31,7 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.modules.cartography.solr.provider;
+package fr.paris.lutece.plugins.cartography.modules.solr.provider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,7 +46,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 
 import fr.paris.lutece.plugins.carto.provider.IMarkerProvider;
 import fr.paris.lutece.plugins.carto.provider.InfoMarker;
-import fr.paris.lutece.plugins.modules.cartography.solr.service.CartographyService;
+import fr.paris.lutece.plugins.cartography.modules.solr.service.CartographyService;
 import fr.paris.lutece.plugins.search.solr.business.SolrFacetedResult;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;

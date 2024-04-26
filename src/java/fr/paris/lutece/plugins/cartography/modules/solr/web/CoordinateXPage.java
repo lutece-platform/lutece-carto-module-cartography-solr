@@ -31,7 +31,7 @@
  *
  * License 1.0
  */
-package fr.paris.lutece.plugins.modules.cartography.solr.web;
+package fr.paris.lutece.plugins.cartography.modules.solr.web;
 
 import fr.paris.lutece.plugins.carto.business.BasemapHome;
 import fr.paris.lutece.plugins.carto.business.Coordonnee;
@@ -45,10 +45,10 @@ import fr.paris.lutece.plugins.carto.business.DataLayerTypeHome;
 import fr.paris.lutece.plugins.carto.business.IDataLayerDAO;
 import fr.paris.lutece.plugins.carto.business.MapTemplate;
 import fr.paris.lutece.plugins.carto.business.MapTemplateHome;
+import fr.paris.lutece.plugins.cartography.modules.solr.service.CartographyService;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItem;
 import fr.paris.lutece.plugins.leaflet.business.GeolocItemPolygon;
 import fr.paris.lutece.plugins.leaflet.service.IconService;
-import fr.paris.lutece.plugins.modules.cartography.solr.service.CartographyService;
 import fr.paris.lutece.plugins.search.solr.business.SolrFacetedResult;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchAppConf;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
