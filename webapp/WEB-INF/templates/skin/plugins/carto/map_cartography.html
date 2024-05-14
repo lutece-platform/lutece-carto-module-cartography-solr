@@ -93,6 +93,7 @@ var getPopupContent = function(layer) {
     
     var marker_clusters = {};
     var marker_icons = {};
+    var markersPolygon = new L.MarkerClusterGroup();
 	
     map.on('draw:created', function (e) {
 	    var type = e.layerType,
@@ -310,6 +311,7 @@ var getPopupContent = function(layer) {
                 "colorPolygon" : "${point.layer_properties.color!}",
                 "weight" : "${point.layer_properties.thickness!}",
                 "zoomMin" : "${point.layer_properties.zoomMin}",
+                "zoomPicto" : "${point.layer_properties.zoomPicto}",
                 "inclusion" : "${point.layer_type.inclusion?c}",
                 "exclusion" : "${point.layer_type.exclusion?c}"
             }<#if point_has_next>,</#if>
@@ -318,6 +320,7 @@ var getPopupContent = function(layer) {
 	
 	
 	const mapZoomLayer = new Map();
+	const mapZoomPicto = new Map();
 	var polygonInclusion = new Array();
     var polygonExclusion = new Array();
 	for (var i = 0; i < points.length; i++) {
@@ -348,6 +351,7 @@ var getPopupContent = function(layer) {
         }
         	
         mapZoomLayer.set(layer,points[i]["zoomMin"]);
+        mapZoomPicto.set(layer,points[i]["zoomPicto"]);
             //Icon
             const fontAwesomeIcon = L.divIcon({
 			    html: points[i]["iconPoint"],
@@ -400,6 +404,19 @@ var getPopupContent = function(layer) {
 	        	{
 	        		polygonExclusion.push( polygon );
 	        	}
+	    		
+	    		const fontAwesomeIcon = L.divIcon({
+				    html: points[i]["iconPoint"],
+				    iconSize: [5, 5],
+				    className: 'myDivIcon'
+				});
+				
+				
+				var center = polygon.getBounds().getCenter();
+		
+				var pointPolygon = L.marker(center, {icon: fontAwesomeIcon});
+		        	
+	            markersPolygon.addLayer(pointPolygon);
             
             
             }
@@ -428,7 +445,8 @@ var getPopupContent = function(layer) {
 
     var popup = L.popup();  
 
-  
+    var tabPointsCentroide = [];
+    var isPoint = false;
   	map.on('zoomend', function() {
    	for (var markers in marker_clusters) {
    	   		if ( map.getZoom() < parseInt(mapZoomLayer.get(markers ) ) && map.hasLayer( marker_clusters[markers] ) ){
@@ -437,8 +455,42 @@ var getPopupContent = function(layer) {
    	   		if ( map.getZoom() >= parseInt(mapZoomLayer.get(markers ) ) && !map.hasLayer( marker_clusters[markers] ) ){
  					map.addLayer( marker_clusters[markers] );
 			}
-   		}
+   	  		 //polygon into marker
+			marker_clusters[markers].eachLayer(function(l) {
+			    if (l instanceof L.Polygon) {
+					var currentZoom = map.getZoom();
+	
+				    // Seuil de zoom pour convertir le polygon en point
+				    var thresholdZoom = parseInt(mapZoomPicto.get(markers ) );
+	
+				    if (currentZoom <= thresholdZoom) {
+					// Récupérer le centre du polygon
+					var center = l.getBounds().getCenter();
+	
+					// Supprimer le polygon
+					map.removeLayer(l);
+	
+					
+					isPoint = true;
+				} else {
+	
+					// Ajouter à nouveau le polygon
+					l.addTo(map);
+					isPoint = false;
+				}
+				    
+			    }
+			});
+   	}
 
+   	if (isPoint)
+   	{
+   		map.addLayer(markersPolygon);
+   	}
+   	else
+   	{
+   		map.removeLayer(markersPolygon);
+	}
     			    
     });
   
