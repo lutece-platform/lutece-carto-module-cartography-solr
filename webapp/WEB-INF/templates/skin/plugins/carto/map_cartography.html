@@ -312,6 +312,7 @@ var getPopupContent = function(layer) {
                 "weight" : "${point.layer_properties.thickness!}",
                 "zoomMin" : "${point.layer_properties.zoomMin}",
                 "zoomPicto" : "${point.layer_properties.zoomPicto}",
+                "idPicto" : "${point.layer_properties.iconImage}",
                 "inclusion" : "${point.layer_type.inclusion?c}",
                 "exclusion" : "${point.layer_type.exclusion?c}"
             }<#if point_has_next>,</#if>
@@ -353,11 +354,24 @@ var getPopupContent = function(layer) {
         mapZoomLayer.set(layer,points[i]["zoomMin"]);
         mapZoomPicto.set(layer,points[i]["zoomPicto"]);
             //Icon
-            const fontAwesomeIcon = L.divIcon({
+            var idPictoUrl = points[i]["idPicto"];
+            var fontAwesomeIcon;
+            if ( idPictoUrl != null && idPictoUrl != '' )
+            {
+            	fontAwesomeIcon = L.icon({
+				    iconUrl: "image?id="+ idPictoUrl + "&resource_type=public_image_resource",
+				    iconSize: [32, 32],
+				    className: 'myDivIcon'
+				});
+            }
+            else
+            {
+              fontAwesomeIcon = L.divIcon({
 			    html: points[i]["iconPoint"],
 			    iconSize: [5, 5],
 			    className: 'myDivIcon'
-			});
+				});
+			}
             if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
 	            
             	/*
@@ -404,13 +418,6 @@ var getPopupContent = function(layer) {
 	        	{
 	        		polygonExclusion.push( polygon );
 	        	}
-	    		
-	    		const fontAwesomeIcon = L.divIcon({
-				    html: points[i]["iconPoint"],
-				    iconSize: [5, 5],
-				    className: 'myDivIcon'
-				});
-				
 				
 				var center = polygon.getBounds().getCenter();
 		
