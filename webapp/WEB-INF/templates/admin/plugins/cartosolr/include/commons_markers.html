@@ -1,0 +1,56 @@
+<#macro marker_descriptions>
+<h3>#i18n{module.workflow.notifygru.task_notify_gru_config.commons.markers.label_table_title}</h3>
+<@table>
+	<tr>
+		<th>Description</th>
+		<th>Marker</th>
+		<th></th>
+	</tr>
+	<#if list_solr_marker?exists>
+		<#list list_solr_marker as marker>
+		<tr>
+			<@td class='marker'>
+				<#if marker.description ??>
+					<#assign description = i18n(marker.description) />
+					<#if description?has_content>${description}<#else>${marker.description!''}</#if>
+				</#if>	
+			</@td>
+			<@td class='marker'>[${marker.marker}]</@td>
+			<@td><@icon style='copy' title='Copy line' /></@td>
+		</tr>
+		</#list>
+	<#else>
+		<tr>
+			<@td colspan=3></@td>
+		</tr>
+	</#if>
+</@table>
+
+<style>
+.marker:hover, .fa-copy:hover{ cursor: pointer; opacity: .8}
+.marker:nth-child(even) td{ background: #777; color: #fff }
+.copied::after{ content:' Ligne copiée !' }
+</style>
+<script>
+function copyToClipboard( txt ) {
+  var $temp = $("<input>"), sTxt=txt.replace(/\s+/g, ' ');
+  $("body").append($temp);
+  $temp.val( sTxt ).select();
+  document.execCommand("copy");
+  $temp.remove();
+}
+
+$('.marker').on( 'dblclick', function(e){
+	//var c = '<p>' + $(this).text() + '</p>';
+	//tinymce.activeEditor.insertContent( '<p>' + c + '</p>' );
+	var c = $(this).text();
+	tinymce.activeEditor.insertContent( c );
+});
+
+$('.fa-copy').on( 'click', function(e){
+	$(this).parent().prevAll().css( 'opacity','.5').animate( {opacity: 1}, 3000 );
+	var elTxt = $(this).parent().siblings().text(); 
+	copyToClipboard( elTxt );	
+});
+</script>
+</#macro>

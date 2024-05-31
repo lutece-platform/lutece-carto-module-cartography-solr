@@ -1,0 +1,30 @@
+<#include "/admin/plugins/carto/include/commons_markers.html"/>
+<#include "/admin/util/editor/editor.html" />
+<@pageContainer>
+    <@pageColumn >
+        <@pageHeader title='#i18n{carto.create_datalayer.title}' />
+		<@div id='new_datalayer'>
+			<@tform name='create_datalayer' action='jsp/admin/plugins/carto/ManageDataLayers.jsp' >
+				<@messages errors=errors />
+				<@input type="hidden" value="${token}" name="token" />
+				<@formGroup labelFor='title' labelKey='#i18n{carto.modify_datalayer.labelTitle}' mandatory=true >
+					<@input type='text' id='title' name='title'  maxlength=255 value='${datalayer.title!\'\'}' />
+				</@formGroup>
+				<@formGroup labelFor='solr_tag' labelKey='#i18n{carto.modify_datalayer.labelSolrTag}' mandatory=true>
+					<@input type='text' id='solr_tag' name='solr_tag'  maxlength=255 value='${datalayer.solrTag!\'\'}' />
+				</@formGroup>
+				<@formGroup labelFor='geometry' labelKey='#i18n{carto.modify_datalayer.labelGeometry}' mandatory=true>
+					<@select name='geometry' items=list_geo_type id='geometry' />
+				</@formGroup>
+				<@formGroup labelFor='texte_popup' labelKey='#i18n{carto.modify_maptemplate.popup}' mandatory=false >
+                    <@input type='textarea' name='popupContent' id='popupContent' rows=15 cols=70 richtext=true> ${datalayer.popupContent!} </@input>
+                </@formGroup>
+                <@columns sm=4>
+					<@marker_descriptions />
+				</@columns>
+				<@actionButtons button1Name="action_createDataLayer" button2Name="view_manageDataLayer"/>
+			</@tform>
+		</@div>
+	</@pageColumn>
+</@pageContainer>
+<@initEditor/>
