@@ -162,6 +162,7 @@ public class CartographyService
                         {
                             h.put( MARK_DATA_LAYER_POPUP, StringUtils.EMPTY );
                         }
+                        h.put( MARK_DATA_LAYER, datalayer );
 
                     }
                     // h.put( MARK_DATA_LAYER, datalayer );
@@ -175,6 +176,24 @@ public class CartographyService
                 }
             }
         }
+        
+        return points;
+    }
+    
+    public static List<HashMap<String, Object>> getWFSFluxModel( int nIdMap )
+    {
+    	List<HashMap<String, Object>> points = new ArrayList<>( );
+        
+        for ( DataLayer datalayerWFS : DataLayerHome.getDataLayersListWFS( nIdMap ) )
+        {
+        	HashMap<String, Object> h = new HashMap<>( );
+        	
+        	h.put( MARK_DATA_LAYER, datalayerWFS );
+        	h.put( MARK_DATA_LAYER_TITLE, datalayerWFS.getTitle( ) );
+        	
+        	points.add( h );
+        }
+        
         return points;
     }
 
@@ -286,6 +305,7 @@ public class CartographyService
             Optional<DataLayerMapTemplate> dataLayerMapTemplate = DataLayerMapTemplateHome.findByIdMapKeyIdDataLayerKey( map.getId( ), datalayer.getId( ) );
             points.addAll( CartographyService.getGeolocModel( listResultsGeoloc, datalayer, dataLayerMapTemplate.get( ) ) );
         }
+        points.addAll( CartographyService.getWFSFluxModel( map.getId( ) ) );
 
         model.put( CartographyService.MARK_POINTS, points );
         model.put( CartographyService.MARK_MAP, map );

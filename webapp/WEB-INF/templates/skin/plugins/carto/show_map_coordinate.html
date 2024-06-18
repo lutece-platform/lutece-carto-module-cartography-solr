@@ -29,7 +29,9 @@
     
 <div id="9_addr_list" class="list-group col-md-8 col-md-offset-1" style=" height:300px;border:1px solid black;margin-top:5px;overflow:auto">
 <#list points as point>
+ <#if point?? && point.geojson??>
  <li class="list-group-item" onclick='chooseAddr(${point.geojson});return false;' >Coordonnées ${point.code!} ${point.geojson} </li>
+</#if>
 
  </#list>
  </div>

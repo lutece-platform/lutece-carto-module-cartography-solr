@@ -303,19 +303,28 @@ var getPopupContent = function(layer) {
 	var points = [
             <#list points as point>
             {
-                "code": "${point.code}",
-                "id": "${point.id}",
-                "geojson": ${point.geojson},
-                "datalayertitle" : "${point.data_layer_title}",
-                "datalayerpopup" : "${point.data_layer_popup}",
-                "iconPoint" : "<i class='ti ti-${point.layer_properties.pictogram} fa-${point.layer_properties.zoomMax}x'></i>",
-                "colorPolygon" : "${point.layer_properties.color!}",
-                "weight" : "${point.layer_properties.thickness!}",
-                "zoomMin" : "${point.layer_properties.zoomMin}",
-                "zoomPicto" : "${point.layer_properties.zoomPicto}",
-                "idPicto" : "${point.layer_properties.iconImage}",
-                "inclusion" : "${point.layer_type.inclusion?c}",
-                "exclusion" : "${point.layer_type.exclusion?c}"
+            	<#if point.data_layer.source == 'SOLR'>
+	            	"code": "${point.code}",
+	                "id": "${point.id}",
+	                "geojson": ${point.geojson},
+	                "datalayertitle" : "${point.data_layer_title}",
+	                "datalayerpopup" : "${point.data_layer_popup}",
+	                "iconPoint" : "<i class='ti ti-${point.layer_properties.pictogram} fa-${point.layer_properties.zoomMax}x'></i>",
+	                "colorPolygon" : "${point.layer_properties.color!}",
+	                "weight" : "${point.layer_properties.thickness!}",
+	                "zoomMin" : "${point.layer_properties.zoomMin}",
+	                "zoomPicto" : "${point.layer_properties.zoomPicto}",
+	                "idPicto" : "${point.layer_properties.iconImage}",
+	                "inclusion" : "${point.layer_type.inclusion?c}",
+	                "exclusion" : "${point.layer_type.exclusion?c}",
+	                "datalayersource" : "${point.data_layer.source}"
+                <#elseif point.data_layer.source == 'WFS'>
+	                "datalayersource" : "${point.data_layer.source}",
+                	"datalayerurlWFS" : "${point.data_layer.urlFlux}",
+                	"datalayertypenameWFS" : "${point.data_layer.typeNameFlux}",
+                	"datalayerversionWFS" : "${point.data_layer.versionFlux}",
+                	 "datalayertitle" : "${point.data_layer_title}"
+                </#if>
             }<#if point_has_next>,</#if>
             </#list>
         ];
@@ -326,6 +335,10 @@ var getPopupContent = function(layer) {
 	var polygonInclusion = new Array();
     var polygonExclusion = new Array();
 	for (var i = 0; i < points.length; i++) {
+		
+		if ( points[i]["datalayersource"] == "SOLR" )
+       	{
+		
 		var markers = undefined;
         var icon = undefined;
         var layer = "";
@@ -373,6 +386,8 @@ var getPopupContent = function(layer) {
 			    className: 'myDivIcon'
 				});
 			}
+            
+        
             if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
 	            
             	/*
@@ -438,6 +453,78 @@ var getPopupContent = function(layer) {
     			markers.addLayer(polyline);
             }
         }
+	
+        else if ( points[i]["datalayersource"] == "WFS" )
+        {
+        
+	        //Gestion flux WFS
+			var customOptions =
+		    {
+		    	maxHeight: 200, maxWidth: 200, closeButton: false
+		    }
+	        
+	        var wfsLayer = L.geoJson(null, {
+	            pointToLayer: function (feature, latlng) {
+	                return L.marker(latlng);
+		        },
+		            
+		            // definition of the infotip
+		   		onEachFeature: function popUpall(feature, layer) {
+				    var out = [];
+				 
+				    if (feature.properties) {
+						for (var key in feature.properties) {
+						    out.push(key + ": " + feature.properties[key]);
+						}
+						layer.bindPopup(out.join("<br />"), customOptions);
+				    }
+		    	}
+	        });
+		
+		// URL du service WFS
+	        var wfsUrl = points[i]["datalayerurlWFS"];
+	
+	        // Paramètres WFS
+	        var wfsParams = {
+	            service: 'WFS',
+			    version: points[i]["datalayerversionWFS"],
+			    request: 'GetFeature',
+			    typeName: points[i]["datalayertypenameWFS"],
+			    maxFeatures: 2,
+			    outputFormat: 'application/json',
+	            srsname: 'EPSG:4326'
+	        };
+	
+	        // Construire l'URL complète pour la requête WFS
+	        var url = wfsUrl + L.Util.getParamString(wfsParams);
+	
+	        // Charger les données WFS et ajouter à la carte
+	        fetch(url)
+	            .then(response => response.json())
+	            .then(data => {
+	                wfsLayer.addData(data);
+	                map.addLayer(wfsLayer);
+	                map.fitBounds(wfsLayer.getBounds());
+	            })
+	            .catch(error => {
+	                console.error('Error fetching WFS data:', error);
+	            });
+	        
+			//overlayMaps["WFS Layer"] = wfsLayer;
+	        //L.control.layers(null, overlayMaps).addTo(map);
+	        var titleWFS = points[i]["datalayertitle"];
+	        marker_clusters[titleWFS] = wfsLayer;
+	        
+        
+        
+        
+        
+        }
+	
+	
+	}
+	
+	
         for (var markers in marker_clusters) {
             if (marker_clusters.hasOwnProperty(markers)) {
                 map.addLayer(marker_clusters[markers]);
