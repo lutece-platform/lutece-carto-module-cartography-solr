@@ -7,7 +7,7 @@
 
 
 <p  id="search_adress">
-	Chercher adresse
+	#i18n{module.cartography.solr.manage_map.search_adress}
 	<@input type='text' id='center_map' name='center_map'  maxlength=255 tabIndex='6' />
 	<@input type="hidden" id='4_idAddress' name='4_idAddress'  value="" />
 	<@input type="hidden" id='4_geometry' name='4_geometry'  value="" />
@@ -632,25 +632,25 @@ var getPopupContent = function(layer) {
 	{
 		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
-		document.getElementById("search_adress").style.visibility = 'visible';	
+		//document.getElementById("search_adress").style.visibility = 'visible';	
 	}
 	else if ( typeDraw === 'Polygon' )
 	{
 		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
-		document.getElementById("search_adress").style.visibility = 'hidden';
+		//document.getElementById("search_adress").style.visibility = 'hidden';
 	}
 	else if ( typeDraw === 'Polyline' )
 	{
 		document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 		document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
-		document.getElementById("search_adress").style.visibility = 'hidden';	
+		//document.getElementById("search_adress").style.visibility = 'hidden';	
 	}
 <#else>
 	document.getElementsByClassName('leaflet-draw-draw-marker')[0].style.display = 'none';
 	document.getElementsByClassName('leaflet-draw-draw-polyline')[0].style.display = 'none';
 	document.getElementsByClassName('leaflet-draw-draw-polygon')[0].style.display = 'none';
-	document.getElementById("search_adress").style.visibility = 'hidden';
+	//document.getElementById("search_adress").style.visibility = 'hidden';
 </#if>
 	
 	// Truncate value based on number of decimals
@@ -959,22 +959,26 @@ $( function(){
             jAdresse.bind( $.suggestPOI.EVT_SELECT, function (event) {
                 event.preventDefault();
                 var marker = L.marker( [event.poi.y, event.poi.x]);
-                if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
-					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
-					return;
-				}
-                if ( !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
-					toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
-					return;
-				}
-                jAdresseGeometry.val(event.poi.type);
-                jAdresseY.val(event.poi.y);
-                jAdresseX.val(event.poi.x);
+                if ( typeDraw === 'Point' )
+        		{
+	                if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+						toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+						return;
+					}
+	                if ( !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+						toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+						return;
+					}
+	                jAdresseGeometry.val(event.poi.type);
+	                jAdresseY.val(event.poi.y);
+	                jAdresseX.val(event.poi.x);
+        		}
                 if ( markerPoint != undefined && map.hasLayer(markerPoint) )
     		    {
     		    	map.removeLayer( markerPoint )
     		    }
                 marker.addTo(map);
+                map.setView(marker.getLatLng(), 15);
                 markerPoint = marker;
                 
                 jAdresseId.val(event.poi.id);
