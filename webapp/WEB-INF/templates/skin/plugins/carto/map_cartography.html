@@ -314,6 +314,10 @@ var getPopupContent = function(layer) {
 	                "weight" : "${point.layer_properties.thickness!}",
 	                "zoomMin" : "${point.layer_properties.zoomMin}",
 	                "zoomPicto" : "${point.layer_properties.zoomPicto}",
+	                "zoomRangePicto07" : "${point.layer_properties.pictoSizeZoom07}",
+	                "zoomRangePicto812" : "${point.layer_properties.pictoSizeZoom812}",
+	                "zoomRangePicto1315" : "${point.layer_properties.pictoSizeZoom1315}",
+	                "zoomRangePicto1619" : "${point.layer_properties.pictoSizeZoom1619}",
 	                "idPicto" : "${point.layer_properties.iconImage}",
 	                "inclusion" : "${point.layer_type.inclusion?c}",
 	                "exclusion" : "${point.layer_type.exclusion?c}",
@@ -332,6 +336,10 @@ var getPopupContent = function(layer) {
 	
 	const mapZoomLayer = new Map();
 	const mapZoomPicto = new Map();
+	const mapZoomRangePicto0_7 = new Map;
+	const mapZoomRangePicto8_12 = new Map;
+	const mapZoomRangePicto13_15 = new Map;
+	const mapZoomRangePicto16_19 = new Map;
 	var polygonInclusion = new Array();
     var polygonExclusion = new Array();
 	for (var i = 0; i < points.length; i++) {
@@ -370,6 +378,10 @@ var getPopupContent = function(layer) {
             //Icon
             var idPictoUrl = points[i]["idPicto"];
             var fontAwesomeIcon;
+            var fontAwesomeIcon0_7;
+            var fontAwesomeIcon8_12;
+            var fontAwesomeIcon13_15;
+            var fontAwesomeIcon16_19;
             if ( idPictoUrl != null && idPictoUrl != '' )
             {
             	fontAwesomeIcon = L.icon({
@@ -377,6 +389,30 @@ var getPopupContent = function(layer) {
 				    iconSize: [32, 32],
 				    className: 'myDivIcon'
 				});
+            	fontAwesomeIcon0_7 = L.icon({
+				    iconUrl: "image?id="+ idPictoUrl + "&resource_type=public_image_resource",
+				    iconSize: [points[i]["zoomRangePicto07"], points[i]["zoomRangePicto07"]],
+				    className: 'myDivIcon'
+				});
+				fontAwesomeIcon8_12 = L.icon({
+						    iconUrl: "image?id="+ idPictoUrl + "&resource_type=public_image_resource",
+						    iconSize: [points[i]["zoomRangePicto812"], points[i]["zoomRangePicto812"]],
+						    className: 'myDivIcon'
+				});
+				fontAwesomeIcon13_15 = L.icon({
+						    iconUrl: "image?id="+ idPictoUrl + "&resource_type=public_image_resource",
+						    iconSize: [points[i]["zoomRangePicto1315"], points[i]["zoomRangePicto1315"]],
+						    className: 'myDivIcon'
+				});
+				fontAwesomeIcon16_19 = L.icon({
+						    iconUrl: "image?id="+ idPictoUrl + "&resource_type=public_image_resource",
+						    iconSize: [points[i]["zoomRangePicto1619"], points[i]["zoomRangePicto1619"]],
+						    className: 'myDivIcon'
+				});
+				mapZoomRangePicto0_7.set(layer,fontAwesomeIcon0_7);
+	            mapZoomRangePicto8_12.set(layer,fontAwesomeIcon8_12);
+	            mapZoomRangePicto13_15.set(layer,fontAwesomeIcon13_15);
+	            mapZoomRangePicto16_19.set(layer,fontAwesomeIcon16_19);
             }
             else
             {
@@ -385,7 +421,12 @@ var getPopupContent = function(layer) {
 			    iconSize: [5, 5],
 			    className: 'myDivIcon'
 				});
+              mapZoomRangePicto0_7.set(layer,fontAwesomeIcon);
+              mapZoomRangePicto8_12.set(layer,fontAwesomeIcon);
+              mapZoomRangePicto13_15.set(layer,fontAwesomeIcon);
+              mapZoomRangePicto16_19.set(layer,fontAwesomeIcon);
 			}
+            
             
         
             if ( points[i]["geojson"]["geometry"]["type"] == "Point" ) {
@@ -575,6 +616,29 @@ var getPopupContent = function(layer) {
 				}
 				    
 			    }
+			    if (l instanceof L.Marker) {
+		    		var currentZoom = map.getZoom();
+		    		var newIcon;
+		    		if ( currentZoom >= 0 && 7 >= currentZoom )
+		    		{
+		    			newIcon = mapZoomRangePicto0_7.get(markers )
+		    			
+		    		}
+		    		else if ( currentZoom >= 8 && 12 >= currentZoom )
+		    		{
+		    			newIcon = mapZoomRangePicto8_12.get(markers )
+		    		}
+		    		else if ( currentZoom >= 13 && 15 >= currentZoom )
+		    		{
+		    			newIcon = mapZoomRangePicto13_15.get(markers )
+		    		}
+		    		else if ( currentZoom >= 16 && 19 >= currentZoom )
+		    		{
+		    			newIcon = mapZoomRangePicto16_19.get(markers )
+		    		}
+		    		l.setIcon(newIcon);
+		    		
+		  	  }
 			});
    	}
 
