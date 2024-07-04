@@ -318,6 +318,7 @@ var getPopupContent = function(layer) {
 	                "zoomRangePicto812" : "${point.layer_properties.pictoSizeZoom812}",
 	                "zoomRangePicto1315" : "${point.layer_properties.pictoSizeZoom1315}",
 	                "zoomRangePicto1619" : "${point.layer_properties.pictoSizeZoom1619}",
+	                "clusterMarker" : "${point.layer_properties.markerCluster?c}",
 	                "idPicto" : "${point.layer_properties.iconImage}",
 	                "inclusion" : "${point.layer_type.inclusion?c}",
 	                "exclusion" : "${point.layer_type.exclusion?c}",
@@ -366,7 +367,14 @@ var getPopupContent = function(layer) {
         } else {
 
             if (typeof(icon) == 'undefined') {
-                markers = new L.MarkerClusterGroup();
+            	if ( points[i]["clusterMarker"] == 'true' )
+            	{
+                	markers = new L.MarkerClusterGroup();
+            	}
+            	else
+            	{
+                	markers = new L.LayerGroup();
+                }
                 icon = new L.Icon.Default();
             }
             marker_clusters[layer] = markers;
