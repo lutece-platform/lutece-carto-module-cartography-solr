@@ -158,6 +158,11 @@ public class CoordinateXPage extends MVCApplication
         _coordonnee = null;
         Map<String, Object> model = getModel( );
         model.put( MARK_LIST_MAP, MapTemplateHome.getMapTemplatesReferenceList( ) );
+        
+		if (request.getParameter(PARAMETER_ID_MAP) != null) {
+			_idMap = Integer.parseInt(request.getParameter(PARAMETER_ID_MAP));
+		}
+        
         if ( _idMap != 0 )
         {
             // Charger map
