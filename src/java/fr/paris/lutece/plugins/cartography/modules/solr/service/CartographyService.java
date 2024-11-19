@@ -62,6 +62,7 @@ import fr.paris.lutece.plugins.leaflet.service.IconService;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
 import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
+import fr.paris.lutece.portal.service.security.LuteceUser;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
@@ -84,6 +85,7 @@ public class CartographyService
     public static final String MARK_LAYER_PROPERTIES = "layer_properties";
     public static final String MARK_LAYER_TYPE = "layer_type";
     public static final String PARAMETER_SOLR_GEOJSON = "DataLayer_text";
+    public static final String PARAMETER_SOLR_ROLE = "RoleUser_text";
     public static final String MARK_LIMIT_VERTEX = "limit_vertex";
 
     private static final String PROPERTY_LIMIT_VERTEX = "map.limit.vertex";
@@ -290,18 +292,35 @@ public class CartographyService
      * @param map
      * @param model
      */
-    public static void loadMapAndPoints( MapTemplate map, Map<String, Object> model )
+    public static void loadMapAndPoints( MapTemplate map, Map<String, Object> model, LuteceUser user )
     {
         SolrSearchEngine engine = SolrSearchEngine.getInstance( );
 
         List<HashMap<String, Object>> points = new ArrayList<HashMap<String, Object>>( );
-        List<DataLayer> lstDatalayer = DataLayerMapTemplateHome.getDataLayerListByMapTemplateId( map.getId( ) );
+        List<DataLayer> lstDatalayerSearchableByOthers = DataLayerMapTemplateHome.getDataLayerListByMapTemplateId( map.getId( ), true );
+        List<DataLayer> lstDatalayerNotSearchableByOthers = DataLayerMapTemplateHome.getDataLayerListByMapTemplateId( map.getId( ), false );
         Optional<DataLayer> dataLayerEditable = DataLayerHome.findDataLayerFromMapId( map.getId( ), true, false, false );
         int nlimit = AppPropertiesService.getPropertyInt( PROPERTY_LIMIT_RESULT_SOLR, 100 );
 
-        for ( DataLayer datalayer : lstDatalayer )
+        for ( DataLayer datalayer : lstDatalayerNotSearchableByOthers )
         {
-            List<SolrSearchResult> listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, nlimit );
+        	List<SolrSearchResult> listResultsGeoloc = null;
+        	if ( user != null && user.getRoles() != null && user.getRoles().length > 0) {
+        		String strRole = user.getRoles()[0];
+        		String[] strQuerySolr = {"(" + PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ) +" AND ( " + PARAMETER_SOLR_ROLE + ":"+strRole+ " OR (*:* NOT " + PARAMETER_SOLR_ROLE + ":[* TO *])))"};
+        		listResultsGeoloc = engine.getGeolocSearchResults( "*:*", strQuerySolr, nlimit );
+        	}
+        	else
+        	{
+        		listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, nlimit );
+        	}
+            Optional<DataLayerMapTemplate> dataLayerMapTemplate = DataLayerMapTemplateHome.findByIdMapKeyIdDataLayerKey( map.getId( ), datalayer.getId( ) );
+            points.addAll( CartographyService.getGeolocModel( listResultsGeoloc, datalayer, dataLayerMapTemplate.get( ) ) );
+        }
+        for ( DataLayer datalayer : lstDatalayerSearchableByOthers )
+        {
+        	List<SolrSearchResult> listResultsGeoloc = null;
+        	listResultsGeoloc = engine.getGeolocSearchResults( PARAMETER_SOLR_GEOJSON + ":" + datalayer.getSolrTag( ), null, nlimit );
             Optional<DataLayerMapTemplate> dataLayerMapTemplate = DataLayerMapTemplateHome.findByIdMapKeyIdDataLayerKey( map.getId( ), datalayer.getId( ) );
             points.addAll( CartographyService.getGeolocModel( listResultsGeoloc, datalayer, dataLayerMapTemplate.get( ) ) );
         }

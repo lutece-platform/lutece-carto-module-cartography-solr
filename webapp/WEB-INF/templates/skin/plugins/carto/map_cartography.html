@@ -319,7 +319,7 @@ var getPopupContent = function(layer) {
 	                "zoomRangePicto1315" : "${point.layer_properties.pictoSizeZoom1315}",
 	                "zoomRangePicto1619" : "${point.layer_properties.pictoSizeZoom1619}",
 	                "clusterMarker" : "${point.layer_properties.markerCluster?c}",
-	                "idPicto" : "${point.layer_properties.iconImage}",
+	                "idPicto" : "${point.layer_properties.iconImage!""}",
 	                "inclusion" : "${point.layer_type.inclusion?c}",
 	                "exclusion" : "${point.layer_type.exclusion?c}",
 	                "datalayersource" : "${point.data_layer.source}"

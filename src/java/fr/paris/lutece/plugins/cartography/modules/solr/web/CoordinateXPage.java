@@ -169,7 +169,7 @@ public class CoordinateXPage extends MVCApplication
             MapTemplate map = MapTemplateHome.findByPrimaryKey( _idMap ).get( );
             // List<Coordonnee> listCoordonnees = CoordonneeHome.getCoordonneesList( );
 
-            CartographyService.loadMapAndPoints( map, model );
+            CartographyService.loadMapAndPoints( map, model, null );
         }
         return getXPage( TEMPLATE_SHOW_MAP_COORDINATE, getLocale( request ), model );
     }
