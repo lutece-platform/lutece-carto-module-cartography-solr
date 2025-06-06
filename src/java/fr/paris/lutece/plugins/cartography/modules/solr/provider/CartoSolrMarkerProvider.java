@@ -54,7 +54,6 @@ import fr.paris.lutece.plugins.search.solr.business.field.Field;
 import fr.paris.lutece.plugins.search.solr.business.field.SolrFieldManager;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
 import fr.paris.lutece.plugins.search.solr.service.SolrSearchAppConfService;
-import fr.paris.lutece.portal.service.search.SearchResult;
 
 public class CartoSolrMarkerProvider implements IMarkerProvider
 {
@@ -81,16 +80,12 @@ public class CartoSolrMarkerProvider implements IMarkerProvider
 
         SolrSearchEngine engine = SolrSearchEngine.getInstance( );
 
-        List<SearchResult> searchResults = engine.getSearchResults( CartographyService.PARAMETER_SOLR_GEOJSON + ":" + solrTag, request );
-        // SolrFacetedResult facetedResult = engine.getFacetedSearchResults( CartographyService.PARAMETER_SOLR_GEOJSON + ":" + solrTag, new String []
-        // {SolrSearchAppConfService.loadConfiguration( null ).getFieldList()}, null, "uid","asc", 100, 1 ,
         SolrFacetedResult facetedResult = engine.getFacetedSearchResults( CartographyService.PARAMETER_SOLR_GEOJSON + ":" + solrTag, new String [ ] {
                 CartographyService.PARAMETER_SOLR_GEOJSON
         }, "uid", "asc", 10, 1, 100, false );
         List<SolrSearchResult> listResults = facetedResult.getSolrSearchResults( );
         List<FacetField> lstfield = facetedResult.getFacetFields( );
 
-        // List<FacetField> lstMarkerField = new ArrayList<>( );
         for ( FacetField facet : lstfield )
         {
             InfoMarker notifyGruMarkerEntry = new InfoMarker( facet.getName( ) );
