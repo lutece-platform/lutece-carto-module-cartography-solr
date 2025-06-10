@@ -453,17 +453,29 @@ var getPopupContent = function(layer) {
 	
 	            markers.addLayer(marker);
 	            */
-		    	var marker = L.geoJSON( points[i]["geojson"], {
-			        pointToLayer: function (feature, latlng) {
-			   			return L.marker(latlng, {icon: fontAwesomeIcon});
-			  		},
-					onEachFeature: function (feature, layer) {
-			  			layer.bindPopup( points[i]["datalayerpopup"], {
-			  			  closeButton: false
-			  			} );
-					} 
-			  	} );	    
-		        markers.addLayer(marker);
+	            if ( points[i]["datalayerpopup"] != '' ) 
+		    	{
+			    	var marker = L.geoJSON( points[i]["geojson"], {
+					pointToLayer: function (feature, latlng) {
+				   			return L.marker(latlng, {icon: fontAwesomeIcon});
+				  		},
+						onEachFeature: function (feature, layer) {
+				  			layer.bindPopup( points[i]["datalayerpopup"], {
+				  			  closeButton: false
+				  			} );
+						} 
+				  	} );	    
+				markers.addLayer(marker);
+		        }
+		        else
+		        {
+			    	var marker = L.geoJSON( points[i]["geojson"], {
+					pointToLayer: function (feature, latlng) {
+				   			return L.marker(latlng, {icon: fontAwesomeIcon});
+				  		}
+				  	} );	    
+				markers.addLayer(marker);
+		        }
             }
             else if ( points[i]["geojson"]["geometry"]["type"] == "Polygon" ) {
                 
@@ -471,9 +483,12 @@ var getPopupContent = function(layer) {
 				var inverse = L.GeoJSON.coordsToLatLngs(aPolygon)
     		    
 	    		var polygon = L.polygon(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-	    		polygon.bindPopup(points[i]["datalayerpopup"], {
-	    			  closeButton: false
-	    		});
+				if ( points[i]["datalayerpopup"] != '' )
+	    		{
+		    		polygon.bindPopup(points[i]["datalayerpopup"], {
+		    			  closeButton: false
+		    		});
+	    		}
 	    		markers.addLayer(polygon);
 	    		if ( points[i]["inclusion"] === 'true' )
 	        	{
@@ -496,9 +511,12 @@ var getPopupContent = function(layer) {
             	var aPolyline = points[i]["geojson"]["geometry"]["coordinates"];
             	var inverse = L.GeoJSON.coordsToLatLngs(aPolyline);
     			var polyline = L.polyline(inverse, {color: points[i]["colorPolygon"], weight: points[i]["weight"] } );
-    			polyline.bindPopup(points[i]["datalayerpopup"], {
-    				  closeButton: false
-    			});
+    			if ( points[i]["datalayerpopup"] != '' )
+	    		{
+		    		polyline.bindPopup(points[i]["datalayerpopup"], {
+		    			  closeButton: false
+		    		});
+	    		}
     			markers.addLayer(polyline);
             }
         }
@@ -738,10 +756,7 @@ var getPopupContent = function(layer) {
         // Object created - bind popup to layer, add to feature group
         map.on(L.Draw.Event.CREATED, function(event) {
             var layer = event.layer;
-            var content = getPopupContent(layer);
-            if (content !== null) {
-                layer.bindPopup(content);
-            }
+
             //NLG A enlever possiblement
             //drawnItems.addLayer(layer);
             editableLayers.addLayer(layer);
