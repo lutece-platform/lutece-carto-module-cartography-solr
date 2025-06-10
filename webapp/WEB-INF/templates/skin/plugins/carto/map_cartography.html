@@ -907,9 +907,14 @@ var getPopupContent = function(layer) {
 	L.Draw.Marker.include({
 	  _onClick: function () {
 	    // our hack
-	    if ( !isMarkerInsideMultiPolygon( this._marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( this._marker, polygonExclusion ) ) {
-	    return;
+	    if ( !isMarkerInsideMultiPolygon( this._marker, polygonInclusion ) ) {
+	    	toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+	    	return;
 	    }
+	    if ( !isMarkerOutsideMultiPolygon( this._marker, polygonExclusion ) ) {
+	    	toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+	    	return;
+		}
 	    
 	    document.getElementById('coordinate_x').value= this._marker.getLatLng().lng;
 	    document.getElementById('coordinate_y').value= this._marker.getLatLng().lat;
@@ -941,9 +946,14 @@ var getPopupContent = function(layer) {
 			zIndexOffset: this.options.zIndexOffset * 2
 		});
 
-		if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
-	    return;
+		if ( !isMarkerInsideMultiPolygon( marker, polygonInclusion ) ) {
+			toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+			return;
 	    }
+		if ( !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+			toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+			return;
+		}
 		//document.getElementById('coordinate_polygon').value = document.getElementById('coordinate_polygon').value + marker.getLatLng().lng + "," + marker.getLatLng().lat +";";
 
 		this._markerGroup.addLayer(marker);
@@ -974,9 +984,14 @@ var getPopupContent = function(layer) {
 			zIndexOffset: this.options.zIndexOffset * 2
 		});
 
-		if (! isMarkerInsideMultiPolygon( marker, polygonInclusion ) || !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
-		    return;
-		    }
+		if ( !isMarkerInsideMultiPolygon( marker, polygonInclusion ) ) {
+			toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+			return;
+		}
+		if ( !isMarkerOutsideMultiPolygon( marker, polygonExclusion ) ) {
+			toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+			return;
+		}
 		
 		
 		this._markers.push(this._createMarker(latlng));
