@@ -239,6 +239,22 @@ var getPopupContent = function(layer) {
 			    }
 			}
 		}
+		else if (layerEdited instanceof L.Marker){
+			if ( !isMarkerInsideMultiPolygon( layerEdited, polygonInclusion ) ) {
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointInclusive}');
+				return;
+			}
+			if ( !isMarkerOutsideMultiPolygon( layerEdited, polygonExclusion ) ) {
+				toastr.error('#i18n{module.cartography.solr.manage_map.error.createPointExclusif}');
+				return;
+			}
+			
+			e.layers.eachLayer(function(layer) {
+				let pos = layer.getLatLng();
+				document.getElementById('coordinate_x').value= layer.getLatLng().lng;
+				document.getElementById('coordinate_y').value= layer.getLatLng().lat;
+	    		});
+		}
 		else if (layerEdited instanceof L.Polyline){
 		    document.getElementById('coordinate_polyline').value = "";
 		    latlngs = layerEdited.getLatLngs();
