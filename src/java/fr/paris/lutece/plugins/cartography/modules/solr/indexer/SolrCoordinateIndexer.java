@@ -36,32 +36,24 @@ package fr.paris.lutece.plugins.cartography.modules.solr.indexer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.xml.sax.ContentHandler;
-
 import fr.paris.lutece.plugins.carto.business.Coordonnee;
 import fr.paris.lutece.plugins.carto.business.CoordonneeHome;
 import fr.paris.lutece.plugins.search.solr.business.field.Field;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrIndexer;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrIndexerService;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
-import fr.paris.lutece.plugins.search.solr.util.LuteceSolrException;
 import fr.paris.lutece.plugins.search.solr.util.LuteceSolrRuntimeException;
 import fr.paris.lutece.plugins.search.solr.util.SolrConstants;
-import fr.paris.lutece.plugins.search.solr.util.TikaIndexerUtil;
-import fr.paris.lutece.portal.business.page.Page;
-import fr.paris.lutece.portal.business.page.PageHome;
 import fr.paris.lutece.portal.service.message.SiteMessageException;
-import fr.paris.lutece.portal.service.page.IPageService;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
-import fr.paris.lutece.portal.service.util.AppException;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
-import fr.paris.lutece.util.url.UrlItem;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * The indexer service for Solr.
  *
  */
+@ApplicationScoped
 public class SolrCoordinateIndexer implements SolrIndexer
 {
     public static final String RESSOURCE_COORDONNEES = "COORDONNEES_COORDONNEE";
@@ -72,7 +64,6 @@ public class SolrCoordinateIndexer implements SolrIndexer
     private static final String TYPE = "PAGE";
     private static final String CATEGORIE = "GeoJSon";
     private static final String PROPERTY_INDEXER_ENABLE = "solr.indexer.page.enable";
-    private static final String BEAN_PAGE_SERVICE = "pageService";
     private static final String SHORT_NAME = "page";
     private static final List<String> LIST_RESSOURCES_NAME = new ArrayList<>( );
     private static final String PAGE_INDEXATION_ERROR = "[SolrCoordonneeIndexer] An error occured during the indexation of the page number ";

@@ -3,7 +3,6 @@ package fr.paris.lutece.plugins.cartography.modules.solr.business;
 import java.io.IOException;
 
 import fr.paris.lutece.plugins.filegenerator.service.IFileGenerator;
-import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
