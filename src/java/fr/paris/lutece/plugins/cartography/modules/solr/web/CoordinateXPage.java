@@ -33,61 +33,53 @@
  */
 package fr.paris.lutece.plugins.cartography.modules.solr.web;
 
-import fr.paris.lutece.plugins.carto.business.BasemapHome;
-import fr.paris.lutece.plugins.carto.business.Coordonnee;
-import fr.paris.lutece.plugins.carto.business.CoordonneeHome;
-import fr.paris.lutece.plugins.carto.business.DataLayer;
-import fr.paris.lutece.plugins.carto.business.DataLayerHome;
-import fr.paris.lutece.plugins.carto.business.DataLayerMapTemplate;
-import fr.paris.lutece.plugins.carto.business.DataLayerMapTemplateHome;
-import fr.paris.lutece.plugins.carto.business.DataLayerType;
-import fr.paris.lutece.plugins.carto.business.DataLayerTypeHome;
-import fr.paris.lutece.plugins.carto.business.IDataLayerDAO;
-import fr.paris.lutece.plugins.carto.business.MapTemplate;
-import fr.paris.lutece.plugins.carto.business.MapTemplateHome;
-import fr.paris.lutece.plugins.cartography.modules.solr.service.CartographyService;
-import fr.paris.lutece.plugins.leaflet.business.GeolocItem;
-import fr.paris.lutece.plugins.leaflet.business.GeolocItemPolygon;
-import fr.paris.lutece.plugins.leaflet.service.IconService;
-import fr.paris.lutece.plugins.search.solr.business.SolrFacetedResult;
-import fr.paris.lutece.plugins.search.solr.business.SolrSearchAppConf;
-import fr.paris.lutece.plugins.search.solr.business.SolrSearchEngine;
-import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;
-import fr.paris.lutece.plugins.search.solr.indexer.SolrIndexerService;
-import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
-import fr.paris.lutece.plugins.search.solr.service.SolrSearchAppConfService;
-import fr.paris.lutece.plugins.search.solr.web.SolrIndexerJspBean;
-import fr.paris.lutece.plugins.workflowcore.business.state.State;
-import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
-import fr.paris.lutece.portal.web.xpages.XPage;
-import fr.paris.lutece.portal.util.mvc.xpage.MVCApplication;
-import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
-import fr.paris.lutece.portal.util.mvc.xpage.annotations.Controller;
-import fr.paris.lutece.util.url.UrlItem;
-import fr.paris.lutece.portal.service.message.SiteMessageService;
-import fr.paris.lutece.portal.service.message.SiteMessage;
-import fr.paris.lutece.portal.service.message.SiteMessageException;
-import fr.paris.lutece.portal.service.security.SecurityTokenService;
-import fr.paris.lutece.portal.service.spring.SpringContextService;
-import fr.paris.lutece.portal.service.admin.AccessDeniedException;
-import fr.paris.lutece.portal.service.util.AppException;
-import fr.paris.lutece.portal.service.util.AppLogService;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
+import fr.paris.lutece.plugins.carto.business.Coordonnee;
+import fr.paris.lutece.plugins.carto.business.CoordonneeHome;
+import fr.paris.lutece.plugins.carto.business.DataLayer;
+import fr.paris.lutece.plugins.carto.business.DataLayerHome;
+import fr.paris.lutece.plugins.carto.business.DataLayerMapTemplate;
+import fr.paris.lutece.plugins.carto.business.DataLayerType;
+import fr.paris.lutece.plugins.carto.business.DataLayerTypeHome;
+import fr.paris.lutece.plugins.carto.business.MapTemplate;
+import fr.paris.lutece.plugins.carto.business.MapTemplateHome;
+import fr.paris.lutece.plugins.cartography.modules.solr.service.CartographyService;
+import fr.paris.lutece.plugins.leaflet.business.GeolocItem;
+import fr.paris.lutece.plugins.leaflet.business.GeolocItemPolygon;
+import fr.paris.lutece.plugins.leaflet.service.IconService;
+import fr.paris.lutece.plugins.search.solr.business.SolrSearchResult;
+import fr.paris.lutece.plugins.search.solr.indexer.SolrIndexerService;
+import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
+import fr.paris.lutece.portal.service.admin.AccessDeniedException;
+import fr.paris.lutece.portal.service.message.SiteMessage;
+import fr.paris.lutece.portal.service.message.SiteMessageException;
+import fr.paris.lutece.portal.service.message.SiteMessageService;
+import fr.paris.lutece.portal.service.util.AppException;
+import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
+import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
+import fr.paris.lutece.portal.util.mvc.xpage.MVCApplication;
+import fr.paris.lutece.portal.util.mvc.xpage.annotations.Controller;
+import fr.paris.lutece.portal.web.xpages.XPage;
+import fr.paris.lutece.util.url.UrlItem;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * This class provides the user interface to manage Coordonnee xpages ( manage, create, modify, remove )
  */
-@Controller( xpageName = "coordinate", pageTitleI18nKey = "carto.xpage.coordonnee.pageTitle", pagePathI18nKey = "carto.xpage.coordonnee.pagePathLabel" )
+@SessionScoped
+@Named( "cartography-solr.xpage.coordinate" )
+@Controller( xpageName = "coordinate", pageTitleI18nKey = "carto.xpage.coordonnee.pageTitle", pagePathI18nKey = "carto.xpage.coordonnee.pagePathLabel", securityTokenEnabled = true )
 public class CoordinateXPage extends MVCApplication
 {
     // Templates
@@ -298,7 +290,6 @@ public class CoordinateXPage extends MVCApplication
 
         Map<String, Object> model = getModel( );
         model.put( MARK_COORDONNEE, _coordonnee );
-        model.put( SecurityTokenService.MARK_TOKEN, SecurityTokenService.getInstance( ).getToken( request, ACTION_CREATE_COORDONNEE ) );
 
         return getXPage( TEMPLATE_CREATE_COORDONNEE, getLocale( request ), model );
     }
@@ -311,7 +302,7 @@ public class CoordinateXPage extends MVCApplication
      * @return The Jsp URL of the process result
      * @throws AccessDeniedException
      */
-    @Action( ACTION_CREATE_COORDONNEE )
+    @Action( value = ACTION_CREATE_COORDONNEE, securityTokenDisabled = true  )
     public XPage doCreateCoordonnee( HttpServletRequest request ) throws AccessDeniedException
     {
         // Data Layer
@@ -424,7 +415,7 @@ public class CoordinateXPage extends MVCApplication
      *            The Http request
      * @return the jsp URL to display the form to manage coordonnees
      */
-    @Action( ACTION_LOAD_MAP )
+    @Action( value = ACTION_LOAD_MAP, securityTokenDisabled = true )
     public XPage doLoadMap( HttpServletRequest request )
     {
         _idMap = Integer.parseInt( request.getParameter( PARAMETER_ID_MAP ) );
@@ -491,7 +482,6 @@ public class CoordinateXPage extends MVCApplication
 
         Map<String, Object> model = getModel( );
         model.put( MARK_COORDONNEE, _coordonnee );
-        model.put( SecurityTokenService.MARK_TOKEN, SecurityTokenService.getInstance( ).getToken( request, ACTION_MODIFY_COORDONNEE ) );
 
         return getXPage( TEMPLATE_MODIFY_COORDONNEE, getLocale( request ), model );
     }
@@ -504,15 +494,10 @@ public class CoordinateXPage extends MVCApplication
      * @return The Jsp URL of the process result
      * @throws AccessDeniedException
      */
-    @Action( ACTION_MODIFY_COORDONNEE )
+    @Action( value = ACTION_MODIFY_COORDONNEE )
     public XPage doModifyCoordonnee( HttpServletRequest request ) throws AccessDeniedException
     {
         populate( _coordonnee, request, getLocale( request ) );
-
-        if ( !SecurityTokenService.getInstance( ).validate( request, ACTION_MODIFY_COORDONNEE ) )
-        {
-            throw new AccessDeniedException( "Invalid security token" );
-        }
 
         // Check constraints
         if ( !validateBean( _coordonnee ) )

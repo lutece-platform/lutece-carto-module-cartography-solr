@@ -34,13 +34,15 @@
 package fr.paris.lutece.plugins.cartography.modules.solr.service;
 
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import fr.paris.lutece.plugins.carto.business.BasemapHome;
 import fr.paris.lutece.plugins.carto.business.MapTemplate;
 import fr.paris.lutece.plugins.carto.business.MapTemplateHome;
 import fr.paris.lutece.plugins.search.solr.service.ISolrSearchAppAddOn;
+import jakarta.enterprise.context.ApplicationScoped;
 
+@ApplicationScoped
 public class CartoSolrAppAddon implements ISolrSearchAppAddOn
 {
 

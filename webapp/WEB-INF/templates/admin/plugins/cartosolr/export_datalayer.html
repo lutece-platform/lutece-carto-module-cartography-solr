@@ -9,7 +9,6 @@
 				<@formGroup labelFor='title' labelKey='#i18n{module.cartography.solr.export.datalayer.labelTitle}' mandatory=true >
 					<@select name='layer_type' items=reflist_data_layer id='layer_type' />
 				</@formGroup>
-				<#if urlFileDownload != ''> <a href="${urlFileDownload!}">TELECHARGER</a> </#if>
 				<@actionButtons button1Name="action_exportDataLayer" button2Name="view_manageDataLayer"/>
 			</@tform>
 		</@div>

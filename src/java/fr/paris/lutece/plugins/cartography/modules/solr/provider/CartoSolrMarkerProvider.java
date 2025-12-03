@@ -40,7 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.solr.client.solrj.response.FacetField;
 
@@ -55,6 +56,7 @@ import fr.paris.lutece.plugins.search.solr.business.field.SolrFieldManager;
 import fr.paris.lutece.plugins.search.solr.indexer.SolrItem;
 import fr.paris.lutece.plugins.search.solr.service.SolrSearchAppConfService;
 
+@ApplicationScoped
 public class CartoSolrMarkerProvider implements IMarkerProvider
 {
 
