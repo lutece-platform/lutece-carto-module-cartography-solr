@@ -10,7 +10,7 @@
 	<installation/>
 	<changes/>
 	<user-guide/>
-	<provider>module.genericattributes.cartography.module.provider</provider>
+	<provider>module.cartography.solr.module.provider</provider>
 	<provider-url>http://lutece.paris.fr</provider-url>
 	<icon-url>images/admin/skin/plugins/genericattributes/genericattributes.png</icon-url>
 	<copyright>Copyright 2001-2013 Mairie de Paris</copyright>
