@@ -8,7 +8,7 @@
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-cartography-solr</artifactId>
     <packaging>lutece-plugin</packaging>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <name>Lutece cartography solr module</name>
     <repositories>
         <repository>
