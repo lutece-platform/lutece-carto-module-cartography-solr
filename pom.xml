@@ -2,13 +2,13 @@
     <parent>
         <artifactId>lutece-global-pom</artifactId>
         <groupId>fr.paris.lutece.tools</groupId>
-        <version>7.0.8-SNAPSHOT</version>
+        <version>7.0.8</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-cartography-solr</artifactId>
     <packaging>lutece-plugin</packaging>
-    <version>1.0.2-beta-02</version>
+    <version>1.0.2</version>
     <name>Lutece cartography solr module</name>
     <repositories>
         <repository>
